@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Результаты поиска - Кулинарный сайт{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>Результаты поиска</h1>
+        
+        <!-- Параметры поиска -->
+        {% if query or hashtag or max_calories %}
+        <div class="alert alert-info">
+            <strong>Параметры поиска:</strong>
+            {% if query %} Запрос: "{{ query }}" {% endif %}
+            {% if hashtag %} Хештег: #{{ hashtag }} {% endif %}
+            {% if max_calories %} Макс. калории: {{ max_calories }} {% endif %}
+            <a href="{% url 'recipes:home' %}" class="btn btn-sm btn-outline-secondary ms-2">Сбросить</a>
+        </div>
+        {% endif %}
+
+        <!-- Форма поиска -->
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <input type="text" name="q" class="form-control" placeholder="Поиск рецептов..." value="{{ query }}">
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="max_calories" class="form-control" placeholder="Макс. калории" value="{{ max_calories }}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-success">Искать</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if recipes %}
+<div class="row">
+    {% for recipe in recipes %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card recipe-card">
+            <div class="card-body">
+                <h5 class="card-title">{{ recipe.title }}</h5>
+                <p class="card-text">{{ recipe.description|truncatewords:15 }}</p>
+                
+                <div class="recipe-meta">
+                    <small class="text-muted">
+                        <strong>Время:</strong> {{ recipe.cooking_time }} мин.<br>
+                        <strong>Калории:</strong> {{ recipe.calories_per_100g }} ккал/100г
+                    </small>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{% url 'recipes:recipe-detail' recipe.pk %}" class="btn btn-outline-success btn-sm">Подробнее</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <h4>Ничего не найдено</h4>
+    <p>Попробуйте изменить параметры поиска.</p>
+</div>
+{% endif %}
+{% endblock %}

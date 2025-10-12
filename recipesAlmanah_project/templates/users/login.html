@@ -1,0 +1,41 @@
+<!-- Страница входа в систему-->
+<!--Наследует структуру-->
+{% extends 'base.html' %}
+
+{% block title %}Вход - Рецептурный Альманах{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Вход в аккаунт</h4>
+            </div>
+            <!--Карточка формы-->
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Имя пользователя</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Войти</button>
+                    </div>
+                </form>
+                
+                <div class="mt-3 text-center">
+                    <p>Нет аккаунта? <a href="{% url 'users:register' %}">Зарегистрируйтесь</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ recipe.title }} - Кулинарный сайт{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0">{{ recipe.title }}</h2>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Автор:</strong> {{ recipe.author.username }}</p>
+                        <p><strong>Время приготовления:</strong> {{ recipe.cooking_time }} минут</p>
+                        <p><strong>Порции:</strong> {{ recipe.servings }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Калорийность:</strong> {{ recipe.calories_per_100g }} ккал/100г</p>
+                        <p><strong>Сложность:</strong> {{ recipe.get_difficulty_display }}</p>
+                        <p><strong>Дата добавления:</strong> {{ recipe.created_at|date:"d.m.Y" }}</p>
+                    </div>
+                </div>
+
+                <h5>Описание</h5>
+                <p class="mb-4">{{ recipe.description }}</p>
+
+                {% if recipe.ingredients.all %}
+                <h5>Ингредиенты</h5>
+                <ul class="list-group mb-4">
+                    {% for ingredient in recipe.ingredients.all %}
+                    <li class="list-group-item">{{ ingredient.name }} - {{ ingredient.quantity }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+                {% if recipe.cooking_steps.all %}
+                <h5>Шаги приготовления</h5>
+                <div class="mb-4">
+                    {% for step in recipe.cooking_steps.all %}
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6>Шаг {{ step.step_number }}</h6>
+                            <p class="mb-0">{{ step.description }}</p>
+                            {% if step.photo %}
+                            <img src="{{ step.photo.url }}" alt="Шаг {{ step.step_number }}" class="img-fluid mt-2" style="max-height: 200px;">
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if recipe.hashtags.all %}
+                <h5>Хештеги</h5>
+                <div class="mb-4">
+                    {% for hashtag in recipe.hashtags.all %}
+                    <span class="badge bg-secondary me-1">#{{ hashtag.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <div class="btn-group">
+                    <a href="{% url 'recipes:home' %}" class="btn btn-outline-secondary">Назад к рецептам</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'recipes:add-to-favorites' recipe.pk %}" class="btn btn-outline-primary">
+                            {% if user in recipe.favorite_set.all %}Удалить из избранного{% else %}В избранное{% endif %}
+                        </a>
+                    {% endif %}
+                    {% if user == recipe.author or user.is_superuser %}
+                        <a href="{% url 'recipes:recipe-update' recipe.pk %}" class="btn btn-outline-warning">Редактировать</a>
+                            <a href="{% url 'recipes:recipe-delete' recipe.pk %}" class="btn btn-outline-danger">Удалить</a>
+                        {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

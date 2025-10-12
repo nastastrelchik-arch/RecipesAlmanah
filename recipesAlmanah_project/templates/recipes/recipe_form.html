@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавление рецепта{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Добавление нового рецепта</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <h5 class="mb-3">Основная информация</h5>
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ field }}
+
+                        {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+
+                        {% if field.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ field.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">Ингредиенты</h5>
+                    <div id="ingredient-formset">
+                        {{ ingredient_formset.management_form }}
+                        {% for form in ingredient_formset %}
+                        <div class="card mb-3 ingredient-form">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Название ингредиента</label>
+                                        {{ form.name }}
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label">Количество</label>
+                                        {{ form.quantity }}
+                                    </div>
+                                    <div class="col-md-1">
+                                        <label class="form-label">&nbsp;</label>
+                                        {% if form.instance.pk %}
+                                            {{ form.DELETE }} <label for="{{ form.DELETE.id_for_label }}">Удалить</label>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {{ form.id }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-outline-success btn-sm mb-4" id="add-ingredient">
+                        + Добавить еще ингредиент
+                    </button>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">Шаги приготовления</h5>
+                    <div id="cooking-step-formset">
+                        {{ cooking_step_formset.management_form }}
+                        {% for form in cooking_step_formset %}
+                        <div class="card mb-3 cooking-step-form">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <label class="form-label">Шаг №</label>
+                                        {{ form.step_number }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        <label class="form-label">Описание</label>
+                                        {{ form.description }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Фото шага (необязательно)</label>
+                                        {{ form.photo }}
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-12">
+                                        {% if form.instance.pk %}
+                                            {{ form.DELETE }} <label for="{{ form.DELETE.id_for_label }}">Удалить этот шаг</label>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {{ form.id }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-outline-success btn-sm mb-4" id="add-cooking-step">
+                        + Добавить еще шаг
+                    </button>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'recipes:home' %}" class="btn btn-secondary me-md-2">Отмена</a>
+                        <button type="submit" class="btn btn-success">Добавить рецепт</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript для динамического добавления форм
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавление ингредиентов
+    document.getElementById('add-ingredient').addEventListener('click', function() {
+        const formset = document.getElementById('ingredient-formset');
+        const totalForms = document.getElementById('id_ingredients-TOTAL_FORMS');
+        const formNum = parseInt(totalForms.value);
+
+        const newForm = formset.querySelector('.ingredient-form').cloneNode(true);
+        newForm.innerHTML = newForm.innerHTML.replace(/ingredients-\d+-/g, `ingredients-${formNum}-`);
+        newForm.innerHTML = newForm.innerHTML.replace(/\[\d+\]/g, `[${formNum}]`);
+
+        // Очищаем значения в новой форме
+        const inputs = newForm.querySelectorAll('input');
+        inputs.forEach(input => {
+            if (input.type !== 'hidden') {
+                input.value = '';
+            }
+        });
+
+        formset.appendChild(newForm);
+        totalForms.value = formNum + 1;
+    });
+
+    // Добавление шагов приготовления
+    document.getElementById('add-cooking-step').addEventListener('click', function() {
+        const formset = document.getElementById('cooking-step-formset');
+        const totalForms = document.getElementById('id_cooking_steps-TOTAL_FORMS');
+        const formNum = parseInt(totalForms.value);
+
+        const newForm = formset.querySelector('.cooking-step-form').cloneNode(true);
+        newForm.innerHTML = newForm.innerHTML.replace(/cooking_steps-\d+-/g, `cooking_steps-${formNum}-`);
+        newForm.innerHTML = newForm.innerHTML.replace(/\[\d+\]/g, `[${formNum}]`);
+
+        // Очищаем значения в новой форме
+        const inputs = newForm.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            if (input.type !== 'hidden' && input.type !== 'checkbox') {
+                input.value = '';
+            }
+        });
+
+        formset.appendChild(newForm);
+        totalForms.value = formNum + 1;
+    });
+});
+</script>
+
+<style>
+.ingredient-form, .cooking-step-form {
+    border-left: 4px solid #28a745;
+}
+</style>
+{% endblock %}
