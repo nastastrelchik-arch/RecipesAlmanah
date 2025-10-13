@@ -7,7 +7,7 @@ from .models import Recipe, Favorite, Hashtag, Ingredient, CookingStep
 from .forms import RecipeForm, IngredientForm, CookingStepForm
 
 # Импортируем inlineformset_factory и создаем formsets прямо в views
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, formset_factory
 
 # Создаем formsets здесь, чтобы избежать циклических импортов
 IngredientFormSet = inlineformset_factory(
@@ -122,7 +122,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
 class RecipeUpdateView(LoginRequiredMixin, UpdateView):
     model = Recipe
     form_class = RecipeForm
-    template_name = 'recipes/recipe_form.html'
+    template_name = 'recipes/recipe_form_update.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

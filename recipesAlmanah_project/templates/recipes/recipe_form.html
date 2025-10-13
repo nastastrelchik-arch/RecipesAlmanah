@@ -1,16 +1,20 @@
 {% extends 'base.html' %}
 
-{% block title %}Добавление рецепта{% endblock %}
+{% block title %}{% if form.instance.pk %}Редактирование рецепта{% else %}Добавление рецепта{% endif %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-10">
         <div class="card">
             <div class="card-header bg-success text-white">
-                <h4 class="mb-0">Добавление нового рецепта</h4>
+                <h4 class="mb-0"> {% if form.instance.pk %}
+                    Редактирование рецепта: {{ form.instance.title }}
+                    {% else %}
+                    Добавление нового рецепта
+                    {% endif %}</h4>
             </div>
             <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" id="recipe-form">
                     {% csrf_token %}
 
                     <h5 class="mb-3">Основная информация</h5>
@@ -51,12 +55,16 @@
                                         <label class="form-label">Количество</label>
                                         {{ form.quantity }}
                                     </div>
-                                    <div class="col-md-1">
-                                        <label class="form-label">&nbsp;</label>
-                                        {% if form.instance.pk %}
-                                            {{ form.DELETE }} <label for="{{ form.DELETE.id_for_label }}">Удалить</label>
-                                        {% endif %}
+                                    <div class="col-md-2">
+                                    {% if form.instance.pk %}
+                                        {{ form.DELETE }} <label for="{{ form.DELETE.id_for_label }}">Удалить</label>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-danger remove-ingredient">Удалить</button>
+                                    {% endif %}
                                     </div>
+                                    {% for hidden in form.hidden_fields %}
+                                     {{ hidden }}
+                                    {% endfor %}
                                 </div>
                                 {{ form.id }}
                             </div>
@@ -92,9 +100,14 @@
                                 <div class="row mt-2">
                                     <div class="col-md-12">
                                         {% if form.instance.pk %}
-                                            {{ form.DELETE }} <label for="{{ form.DELETE.id_for_label }}">Удалить этот шаг</label>
+                                            {{ form.DELETE }} <label for="{{ form.DELETE.id_for_label }}">Удалить шаг</label>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm btn-danger remove-step">Удалить шаг</button>
                                         {% endif %}
                                     </div>
+                                    {% for hidden in form.hidden_fields %}
+                                        {{ hidden }}
+                                    {% endfor %}
                                 </div>
                                 {{ form.id }}
                             </div>
@@ -116,8 +129,17 @@
 </div>
 
 <script>
-// JavaScript для динамического добавления форм
+// JavaScript для динамического кправления формами
 document.addEventListener('DOMContentLoaded', function() {
+
+    function updateElementIndex(el, prefix, idx) {
+        const idRegex = new RegExp(`(${prefix}-\\d+)`);
+        const replacement = `${prefix}-${idx}`;
+        if (el.for) el.setAttribute('for', el.for.replace(idRegex, replacement));
+        if (el.id) el.id = el.id.replace(idRegex, replacement);
+        if (el.name) el.name = el.name.replace(idRegex, replacement);
+    }
+
     // Добавление ингредиентов
     document.getElementById('add-ingredient').addEventListener('click', function() {
         const formset = document.getElementById('ingredient-formset');
@@ -135,6 +157,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.value = '';
             }
         });
+
+        // Добавляем кнопку удаления для новой формы
+        const deleteDiv = newForm.querySelector('.col-md-2');
+        deleteDiv.innerHTML = '<button type="button" class="btn btn-sm btn-danger remove-ingredient">Удалить</button>';
 
         formset.appendChild(newForm);
         totalForms.value = formNum + 1;
@@ -161,6 +187,8 @@ document.addEventListener('DOMContentLoaded', function() {
         formset.appendChild(newForm);
         totalForms.value = formNum + 1;
     });
+
+
 });
 </script>
 
