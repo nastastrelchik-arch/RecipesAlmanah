@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="48c9dd52-a46f-481a-a069-f64cb8abc318" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/recipesAlmanah_project/templates/recipes/recipe_form_update.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/comments/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/comments/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/comments/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/comments/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/recipes/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/recipes/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/recipesAlmanah_project/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/recipesAlmanah_project/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/templates/recipes/recipe_form.html" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/templates/recipes/recipe_form.html" afterDir="false" />
-    </list>
+    <list default="true" id="48c9dd52-a46f-481a-a069-f64cb8abc318" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -56,7 +47,7 @@
     "django.template.preview.state": "SHOW_EDITOR_AND_PREVIEW",
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/university/kursach/RecipesAlmanah",
+    "last_opened_file_path": "D:/University/kursach",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -100,8 +91,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-PY-251.25410.159" />
-        <option value="bundled-python-sdk-e0ed3721d81e-36ea0e71a18c-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.25410.159" />
+        <option value="bundled-js-predefined-d6986cc7102b-b598e85cdad2-JavaScript-PY-252.25557.178" />
+        <option value="bundled-python-sdk-ce6832f46686-7b97d883f26b-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.25557.178" />
       </set>
     </attachedChunks>
   </component>
@@ -120,6 +111,7 @@
       <workItem from="1759923899128" duration="533000" />
       <workItem from="1760103520535" duration="9000" />
       <workItem from="1760340661909" duration="6152000" />
+      <workItem from="1760353199524" duration="847000" />
     </task>
     <servers />
   </component>

@@ -9,6 +9,12 @@
             <div class="card-header bg-success text-white">
                 <h2 class="mb-0">{{ recipe.title }}</h2>
             </div>
+
+            <!-- ДОБАВЛЕНО: Главное фото рецепта -->
+            {% if recipe.main_photo %}
+            <img src="{{ recipe.main_photo.url }}" class="card-img-top" alt="{{ recipe.title }}" style="max-height: 400px; object-fit: cover;">
+            {% endif %}
+
             <div class="card-body">
                 <div class="row mb-4">
                     <div class="col-md-6">
@@ -71,8 +77,8 @@
                     {% endif %}
                     {% if user == recipe.author or user.is_superuser %}
                         <a href="{% url 'recipes:recipe-update' recipe.pk %}" class="btn btn-outline-warning">Редактировать</a>
-                            <a href="{% url 'recipes:recipe-delete' recipe.pk %}" class="btn btn-outline-danger">Удалить</a>
-                        {% endif %}
+                        <a href="{% url 'recipes:recipe-delete' recipe.pk %}" class="btn btn-outline-danger">Удалить</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

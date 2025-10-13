@@ -24,13 +24,22 @@
     </div>
 </div>
 
-    <!--Сетка рецептов-->
+<!--Сетка рецептов-->
 {% if recipes %}
 <div class="row">
     {% for recipe in recipes %}
     <div class="col-lg-4 col-md-6 mb-4">
-    <!--Карточка рецепта-->
+        <!--Карточка рецепта-->
         <div class="card recipe-card">
+            <!-- ДОБАВЛЕНО: Главное фото рецепта -->
+            {% if recipe.main_photo %}
+            <img src="{{ recipe.main_photo.url }}" class="card-img-top" alt="{{ recipe.title }}" style="height: 200px; object-fit: cover;">
+            {% else %}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                <span class="text-muted">Нет фото</span>
+            </div>
+            {% endif %}
+
             <div class="card-body">
                 <h5 class="card-title">{{ recipe.title }}</h5>
                 <p class="card-text">{{ recipe.description|truncatewords:15 }}</p>
@@ -90,7 +99,7 @@
 </nav>
 {% endif %}
 
-    <!--Сообщение при отсутствии рецепта-->
+<!--Сообщение при отсутствии рецепта-->
 {% else %}
 <div class="alert alert-info">
     <h4>Рецептов пока нет</h4>
