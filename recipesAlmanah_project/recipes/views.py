@@ -94,7 +94,7 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
         ingredient_formset = context['ingredient_formset']
         cooking_step_formset = context['cooking_step_formset']
 
-        # Сохраняем основной рецепт
+        # Сохраняем основной рецепт (включая хештеги через переопределенный save формы)
         self.object = form.save()
 
         # Сохраняем ингредиенты
@@ -126,14 +126,23 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['existing_hashtags'] = Hashtag.objects.all()
+
         if self.request.POST:
-            context['ingredient_formset'] = IngredientFormSet(self.request.POST, self.request.FILES,
-                                                              instance=self.object, prefix='ingredients')
-            context['cooking_step_formset'] = CookingStepFormSet(self.request.POST, self.request.FILES,
-                                                                 instance=self.object, prefix='cooking_steps')
+            context['ingredient_formset'] = IngredientFormSet(
+                self.request.POST, self.request.FILES, instance=self.object, prefix='ingredients'
+            )
+            context['cooking_step_formset'] = CookingStepFormSet(
+                self.request.POST, self.request.FILES, instance=self.object, prefix='cooking_steps'
+            )
         else:
-            context['ingredient_formset'] = IngredientFormSet(instance=self.object, prefix='ingredients')
-            context['cooking_step_formset'] = CookingStepFormSet(instance=self.object, prefix='cooking_steps')
+            context['ingredient_formset'] = IngredientFormSet(
+                instance=self.object, prefix='ingredients'
+            )
+            context['cooking_step_formset'] = CookingStepFormSet(
+                instance=self.object, prefix='cooking_steps'
+            )
+
         return context
 
     def form_valid(self, form):

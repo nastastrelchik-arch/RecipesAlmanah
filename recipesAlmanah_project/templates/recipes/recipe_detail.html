@@ -42,21 +42,41 @@
                 {% endif %}
 
                 {% if recipe.cooking_steps.all %}
-                <h5>Шаги приготовления</h5>
-                <div class="mb-4">
-                    {% for step in recipe.cooking_steps.all %}
-                    <div class="card mb-2">
-                        <div class="card-body">
-                            <h6>Шаг {{ step.step_number }}</h6>
-                            <p class="mb-0">{{ step.description }}</p>
-                            {% if step.photo %}
-                            <img src="{{ step.photo.url }}" alt="Шаг {{ step.step_number }}" class="img-fluid mt-2" style="max-height: 200px;">
-                            {% endif %}
-                        </div>
+<h5>Шаги приготовления</h5>
+<div class="mb-4">
+    {% for step in recipe.cooking_steps.all %}
+    <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="row g-0">
+                <!-- Изображение - на десктопе слева, на мобильных сверху -->
+                <div class="col-md-4 position-relative order-md-1 order-2">
+                    {% if step.photo %}
+                    <div class="h-100 d-flex align-items-center justify-content-center bg-light rounded-start rounded-md-start-0 rounded-top-md p-2">
+                        <img src="{{ step.photo.url }}" alt="Шаг {{ step.step_number }}"
+                             class="img-fluid rounded" style="max-height: 300px; width: auto; object-fit: contain;">
                     </div>
-                    {% endfor %}
+                    {% else %}
+                    <div class="h-100 d-flex align-items-center justify-content-center bg-light rounded-start rounded-md-start-0 rounded-top-md text-muted p-3" style="min-height: 150px;">
+                        <i class="fas fa-image fa-2x"></i>
+                    </div>
+                    {% endif %}
+                    <!-- Номер шага на изображении с зеленым фоном -->
+                    <div class="position-absolute top-0 start-0 bg-success text-white px-2 py-1 rounded-bottom-end">
+                        Шаг {{ step.step_number }}
+                    </div>
                 </div>
-                {% endif %}
+                <!-- Текст - на десктопе справа, на мобильных снизу -->
+                <div class="col-md-8 d-flex align-items-center order-md-2 order-1">
+                    <div class="p-3">
+                        <p class="card-text mb-0">{{ step.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
                 {% if recipe.hashtags.all %}
                 <h5>Хештеги</h5>

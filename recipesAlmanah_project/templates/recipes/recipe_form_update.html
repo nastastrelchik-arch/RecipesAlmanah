@@ -7,58 +7,115 @@
     <div class="col-md-10">
         <div class="card">
             <div class="card-header bg-success text-white">
-                <h4 class="mb-0">Изменение рецепта</h4>
+                <h4 class="mb-0">Изменение рецепта: {{ form.instance.title }}</h4>
             </div>
             <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" id="recipe-form">
                     {% csrf_token %}
 
                     <h5 class="mb-3">Основная информация</h5>
                     {% for field in form %}
-                    <div class="mb-3">
-                        <label for="{{ field.id_for_label }}" class="form-label">
-                            {{ field.label }}
-                            {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
-                        </label>
-                        {{ field }}
+                       {% if field.name != 'hashtags_text' %} <!-- Исключаем поле hashtags из общего цикла -->
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {{ field }}
 
-                        {% if field.help_text %}
-                        <div class="form-text">{{ field.help_text }}</div>
-                        {% endif %}
+                            {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
 
-                        {% if field.errors %}
-                        <div class="alert alert-danger mt-1">
-                            {{ field.errors }}
+                            {% if field.errors %}
+                            <div class="alert alert-danger mt-1">
+                                {{ field.errors }}
+                            </div>
+                            {% endif %}
                         </div>
                         {% endif %}
-                    </div>
                     {% endfor %}
+
+                    <hr class="my-4">
+
+                    <!-- Хештеги -->
+                    <h5 class="mb-3">Хештеги</h5>
+                    <div class="mb-4">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label class="form-label">Выберите существующие хештеги или добавьте новые</label>
+                                <select class="form-select" id="hashtag-select" multiple>
+                                    {% for hashtag in existing_hashtags %}
+                                    <option value="{{ hashtag.name }}">{{ hashtag.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Добавить новый хештег</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="new-hashtag" placeholder="#новый_хештег">
+                                    <button type="button" class="btn btn-outline-success" id="add-hashtag-btn">Добавить</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Выбранные хештеги -->
+                        <div class="mt-3">
+                            <label class="form-label">Выбранные хештеги:</label>
+                            <div id="selected-hashtags" class="d-flex flex-wrap gap-2 p-2 bg-light rounded">
+                                <!-- Здесь будут отображаться выбранные хештеги -->
+                            </div>
+                        </div>
+
+                        <!-- Поле для хештегов -->
+                        <div class="mb-3">
+            <label for="{{ form.hashtags_input.id_for_label }}" class="form-label">
+             {{ form.hashtags_input.label }}
+            </label>
+                {{ form.hashtags_input }}
+
+                            {% if form.hashtags.help_text %}
+                            <div class="form-text">{{ form.hashtags.help_text }}</div>
+                            {% endif %}
+
+                            {% if form.hashtags.errors %}
+                            <div class="alert alert-danger mt-1">
+                                {{ form.hashtags.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
 
                     <hr class="my-4">
 
                     <h5 class="mb-3">Ингредиенты</h5>
                     <div id="ingredient-formset">
                         {{ ingredient_formset.management_form }}
-                        {% for form in ingredient_formset %}
+                        {% for ingredient_form in ingredient_formset %}
                         <div class="card mb-3 ingredient-form">
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label class="form-label">Название ингредиента</label>
-                                        {{ form.name }}
+                                        {{ ingredient_form.name }}
                                     </div>
                                     <div class="col-md-5">
                                         <label class="form-label">Количество</label>
-                                        {{ form.quantity }}
+                                        {{ ingredient_form.quantity }}
                                     </div>
                                     <div class="col-md-1">
                                         <label class="form-label">&nbsp;</label>
-                                        {% if form.instance.pk %}
-                                            {{ form.DELETE }} <label for="{{ form.DELETE.id_for_label }}">Удалить</label>
+                                        {% if ingredient_form.instance.pk %}
+                                            {{ ingredient_form.DELETE }} <label for="{{ ingredient_form.DELETE.id_for_label }}">Удалить</label>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm btn-danger remove-ingredient">Удалить</button>
                                         {% endif %}
                                     </div>
                                 </div>
-                                {{ form.id }}
+                                {{ ingredient_form.id }}
+                                {% for hidden in ingredient_form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
                             </div>
                         </div>
                         {% endfor %}
@@ -72,31 +129,36 @@
                     <h5 class="mb-3">Шаги приготовления</h5>
                     <div id="cooking-step-formset">
                         {{ cooking_step_formset.management_form }}
-                        {% for form in cooking_step_formset %}
+                        {% for step_form in cooking_step_formset %}
                         <div class="card mb-3 cooking-step-form">
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-2">
                                         <label class="form-label">Шаг №</label>
-                                        {{ form.step_number }}
+                                        {{ step_form.step_number }}
                                     </div>
                                     <div class="col-md-7">
                                         <label class="form-label">Описание</label>
-                                        {{ form.description }}
+                                        {{ step_form.description }}
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label">Фото шага (необязательно)</label>
-                                        {{ form.photo }}
+                                        {{ step_form.photo }}
                                     </div>
                                 </div>
                                 <div class="row mt-2">
                                     <div class="col-md-12">
-                                        {% if form.instance.pk %}
-                                            {{ form.DELETE }} <label for="{{ form.DELETE.id_for_label }}">Удалить этот шаг</label>
+                                        {% if step_form.instance.pk %}
+                                            {{ step_form.DELETE }} <label for="{{ step_form.DELETE.id_for_label }}">Удалить этот шаг</label>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm btn-danger remove-step">Удалить шаг</button>
                                         {% endif %}
                                     </div>
                                 </div>
-                                {{ form.id }}
+                                {{ step_form.id }}
+                                {% for hidden in step_form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
                             </div>
                         </div>
                         {% endfor %}
@@ -107,7 +169,7 @@
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                         <a href="{% url 'recipes:home' %}" class="btn btn-secondary me-md-2">Отмена</a>
-                        <button type="submit" class="btn btn-success">Изменить рецепт</button>
+                        <button type="submit" class="btn btn-success">Сохранить изменения</button>
                     </div>
                 </form>
             </div>
@@ -116,8 +178,88 @@
 </div>
 
 <script>
-// JavaScript для динамического добавления форм
 document.addEventListener('DOMContentLoaded', function() {
+    // Управление хештегами
+    const hashtagSelect = document.getElementById('hashtag-select');
+    const newHashtagInput = document.getElementById('new-hashtag');
+    const addHashtagBtn = document.getElementById('add-hashtag-btn');
+    const selectedHashtagsContainer = document.getElementById('selected-hashtags');
+   const hashtagsInput = document.getElementById('{{ form.hashtags_text.id_for_label }}');
+    let selectedHashtags = new Set();
+
+    // Загрузка ранее выбранных хештегов при редактировании
+    function loadExistingHashtags() {
+        // Для существующего рецепта - загружаем хештеги из формы
+        const existingHashtags = "{{ form.hashtags.value|default:''|escapejs }}".split(',').filter(tag => tag.trim() !== '');
+        existingHashtags.forEach(tag => {
+            if (tag.trim()) {
+                addHashtagToSelection(tag.trim());
+            }
+        });
+    }
+
+    // Добавление хештега в выбор
+    function addHashtagToSelection(hashtag) {
+        if (!hashtag || selectedHashtags.has(hashtag)) return;
+
+        selectedHashtags.add(hashtag);
+
+        const hashtagElement = document.createElement('span');
+        hashtagElement.className = 'badge bg-success d-flex align-items-center';
+        hashtagElement.innerHTML = `
+            ${hashtag}
+            <button type="button" class="btn-close btn-close-white ms-2" data-hashtag="${hashtag}"></button>
+        `;
+
+        selectedHashtagsContainer.appendChild(hashtagElement);
+        updateHashtagsInput();
+
+        // Добавляем обработчик удаления
+        hashtagElement.querySelector('button').addEventListener('click', function() {
+            const tagToRemove = this.getAttribute('data-hashtag');
+            selectedHashtags.delete(tagToRemove);
+            this.parentElement.remove();
+            updateHashtagsInput();
+        });
+    }
+
+    // Обновление поля с хештегами
+    function updateHashtagsInput() {
+        hashtagsInput.value = Array.from(selectedHashtags).join(', ');
+    }
+
+    // Добавление хештега из селекта
+    hashtagSelect.addEventListener('change', function() {
+        Array.from(this.selectedOptions).forEach(option => {
+            addHashtagToSelection(option.value);
+            option.selected = false;
+        });
+    });
+
+    // Добавление нового хештега
+    addHashtagBtn.addEventListener('click', function() {
+        const newHashtag = newHashtagInput.value.trim();
+        if (newHashtag) {
+            // Добавляем # если его нет
+            const formattedHashtag = newHashtag.startsWith('#') ? newHashtag : `#${newHashtag}`;
+            addHashtagToSelection(formattedHashtag);
+            newHashtagInput.value = '';
+        }
+    });
+
+    // Добавление по Enter
+    newHashtagInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addHashtagBtn.click();
+        }
+    });
+
+    // Загрузка существующих хештегов при редактировании
+    loadExistingHashtags();
+
+    // Остальной JavaScript для управления формами (ингредиенты и шаги)
+
     // Добавление ингредиентов
     document.getElementById('add-ingredient').addEventListener('click', function() {
         const formset = document.getElementById('ingredient-formset');
@@ -135,6 +277,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.value = '';
             }
         });
+
+        // Добавляем кнопку удаления для новой формы
+        const deleteDiv = newForm.querySelector('.col-md-1');
+        deleteDiv.innerHTML = '<button type="button" class="btn btn-sm btn-danger remove-ingredient">Удалить</button>';
 
         formset.appendChild(newForm);
         totalForms.value = formNum + 1;
@@ -158,8 +304,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // Добавляем кнопку удаления для новой формы
+        const deleteDiv = newForm.querySelector('.col-md-12');
+        deleteDiv.innerHTML = '<button type="button" class="btn btn-sm btn-danger remove-step">Удалить шаг</button>';
+
         formset.appendChild(newForm);
         totalForms.value = formNum + 1;
+    });
+
+    // Удаление ингредиентов и шагов
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-ingredient')) {
+            e.target.closest('.ingredient-form').remove();
+        }
+        if (e.target.classList.contains('remove-step')) {
+            e.target.closest('.cooking-step-form').remove();
+        }
     });
 });
 </script>
@@ -167,6 +327,18 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
 .ingredient-form, .cooking-step-form {
     border-left: 4px solid #28a745;
+}
+
+/* Стили для выбранных хештегов */
+#selected-hashtags .badge {
+    font-size: 0.85em;
+    padding: 0.5em 0.75em;
+}
+
+/* Стили для селекта хештегов */
+#hashtag-select {
+    height: auto;
+    min-height: 100px;
 }
 </style>
 {% endblock %}
