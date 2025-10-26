@@ -96,20 +96,23 @@ class CookingStepForm(forms.ModelForm):
 
 
 # Formsets
+# Создаем formsets
 IngredientFormSet = inlineformset_factory(
     Recipe,
     Ingredient,
     form=IngredientForm,
-    extra=3,
+    extra=0,  # Уменьшите extra до 0
     can_delete=True,
-    fields=['name', 'quantity']
+    fields=['name', 'quantity'],
+    validate_min=False,  # Разрешаем пустые формы
 )
 
 CookingStepFormSet = inlineformset_factory(
     Recipe,
     CookingStep,
     form=CookingStepForm,
-    extra=2,
+    extra=0,  # Уменьшите extra до 0
     can_delete=True,
-    fields=['step_number', 'description', 'photo']
+    fields=['step_number', 'description', 'photo'],
+    validate_min=False,  # Разрешаем пустые формы
 )

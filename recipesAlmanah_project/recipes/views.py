@@ -146,25 +146,55 @@ class RecipeUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
     def form_valid(self, form):
+        """Сохраняем рецепт и связанные объекты"""
+        form.instance.author = self.request.user
         context = self.get_context_data()
         ingredient_formset = context['ingredient_formset']
         cooking_step_formset = context['cooking_step_formset']
 
-        if ingredient_formset.is_valid() and cooking_step_formset.is_valid():
-            self.object = form.save()
-            ingredient_formset.instance = self.object
-            ingredient_formset.save()
-            cooking_step_formset.instance = self.object
-            cooking_step_formset.save()
-            return redirect('recipes:recipe-detail', pk=self.object.pk)
-        else:
-            return self.render_to_response(self.get_context_data(form=form))
+        # Сохраняем основной рецепт
+        self.object = form.save()
 
-    def dispatch(self, request, *args, **kwargs):
-        obj = self.get_object()
-        if obj.author != self.request.user:
-            return redirect('recipes:recipe-detail', pk=obj.pk)
-        return super().dispatch(request, *args, **kwargs)
+        try:
+            # Сохраняем ингредиенты
+            if ingredient_formset.is_valid():
+                ingredient_formset.instance = self.object
+                ingredients = ingredient_formset.save(commit=False)
+
+                for ingredient in ingredients:
+                    # Сохраняем только если заполнены оба поля
+                    if ingredient.name and ingredient.quantity:
+                        ingredient.save()
+
+                # Удаляем отмеченные для удаления ингредиенты
+                for form in ingredient_formset.deleted_forms:
+                    if form.instance.pk:
+                        form.instance.delete()
+            else:
+                print("Ingredient formset errors:", ingredient_formset.errors)
+
+            # Сохраняем шаги приготовления
+            if cooking_step_formset.is_valid():
+                cooking_step_formset.instance = self.object
+                steps = cooking_step_formset.save(commit=False)
+
+                for step in steps:
+                    # Сохраняем только если есть описание
+                    if step.description:
+                        step.save()
+
+                # Удаляем отмеченные для удаления шаги
+                for form in cooking_step_formset.deleted_forms:
+                    if form.instance.pk:
+                        form.instance.delete()
+            else:
+                print("Cooking step formset errors:", cooking_step_formset.errors)
+
+            return redirect('recipes:recipe-detail', pk=self.object.pk)
+
+        except Exception as e:
+            print(f"Error saving formsets: {e}")
+            return self.form_invalid(form)
 
 #Удаление рецепта(только для автора)
 class RecipeDeleteView(LoginRequiredMixin, DeleteView):

@@ -15,7 +15,7 @@
 
                     <h5 class="mb-3">Основная информация</h5>
                     {% for field in form %}
-                       {% if field.name != 'hashtags_text' %} <!-- Исключаем поле hashtags из общего цикла -->
+                        {% if field.name != 'hashtags_text' %}
                         <div class="mb-3">
                             <label for="{{ field.id_for_label }}" class="form-label">
                                 {{ field.label }}
@@ -69,18 +69,19 @@
 
                         <!-- Поле для хештегов -->
                         <div class="mb-3">
-            <label for="{{ form.hashtags_input.id_for_label }}" class="form-label">
-             {{ form.hashtags_input.label }}
-            </label>
-                {{ form.hashtags_input }}
+                            <label for="{{ form.hashtags_text.id_for_label }}" class="form-label">
+                                Хештеги
+                                {% if form.hashtags_text.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {{ form.hashtags_text }}
 
-                            {% if form.hashtags.help_text %}
-                            <div class="form-text">{{ form.hashtags.help_text }}</div>
+                            {% if form.hashtags_text.help_text %}
+                            <div class="form-text">{{ form.hashtags_text.help_text }}</div>
                             {% endif %}
 
-                            {% if form.hashtags.errors %}
+                            {% if form.hashtags_text.errors %}
                             <div class="alert alert-danger mt-1">
-                                {{ form.hashtags.errors }}
+                                {{ form.hashtags_text.errors }}
                             </div>
                             {% endif %}
                         </div>
@@ -98,15 +99,30 @@
                                     <div class="col-md-6">
                                         <label class="form-label">Название ингредиента</label>
                                         {{ ingredient_form.name }}
+                                        {% if ingredient_form.name.errors %}
+                                        <div class="alert alert-danger mt-1">
+                                            {{ ingredient_form.name.errors }}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-md-5">
                                         <label class="form-label">Количество</label>
                                         {{ ingredient_form.quantity }}
+                                        {% if ingredient_form.quantity.errors %}
+                                        <div class="alert alert-danger mt-1">
+                                            {{ ingredient_form.quantity.errors }}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-md-1">
                                         <label class="form-label">&nbsp;</label>
                                         {% if ingredient_form.instance.pk %}
-                                            {{ ingredient_form.DELETE }} <label for="{{ ingredient_form.DELETE.id_for_label }}">Удалить</label>
+                                            <div class="form-check">
+                                                {{ ingredient_form.DELETE }}
+                                                <label class="form-check-label" for="{{ ingredient_form.DELETE.id_for_label }}">
+                                                    Удалить
+                                                </label>
+                                            </div>
                                         {% else %}
                                             <button type="button" class="btn btn-sm btn-danger remove-ingredient">Удалить</button>
                                         {% endif %}
@@ -121,7 +137,7 @@
                         {% endfor %}
                     </div>
                     <button type="button" class="btn btn-outline-success btn-sm mb-4" id="add-ingredient">
-                        + Добавить еще ингредиент
+                        + Добавить ингредиент
                     </button>
 
                     <hr class="my-4">
@@ -136,20 +152,40 @@
                                     <div class="col-md-2">
                                         <label class="form-label">Шаг №</label>
                                         {{ step_form.step_number }}
+                                        {% if step_form.step_number.errors %}
+                                        <div class="alert alert-danger mt-1">
+                                            {{ step_form.step_number.errors }}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-md-7">
                                         <label class="form-label">Описание</label>
                                         {{ step_form.description }}
+                                        {% if step_form.description.errors %}
+                                        <div class="alert alert-danger mt-1">
+                                            {{ step_form.description.errors }}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label">Фото шага (необязательно)</label>
                                         {{ step_form.photo }}
+                                        {% if step_form.photo.errors %}
+                                        <div class="alert alert-danger mt-1">
+                                            {{ step_form.photo.errors }}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="row mt-2">
                                     <div class="col-md-12">
                                         {% if step_form.instance.pk %}
-                                            {{ step_form.DELETE }} <label for="{{ step_form.DELETE.id_for_label }}">Удалить этот шаг</label>
+                                            <div class="form-check">
+                                                {{ step_form.DELETE }}
+                                                <label class="form-check-label" for="{{ step_form.DELETE.id_for_label }}">
+                                                    Удалить этот шаг
+                                                </label>
+                                            </div>
                                         {% else %}
                                             <button type="button" class="btn btn-sm btn-danger remove-step">Удалить шаг</button>
                                         {% endif %}
@@ -164,7 +200,7 @@
                         {% endfor %}
                     </div>
                     <button type="button" class="btn btn-outline-success btn-sm mb-4" id="add-cooking-step">
-                        + Добавить еще шаг
+                        + Добавить шаг
                     </button>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
@@ -184,13 +220,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const newHashtagInput = document.getElementById('new-hashtag');
     const addHashtagBtn = document.getElementById('add-hashtag-btn');
     const selectedHashtagsContainer = document.getElementById('selected-hashtags');
-   const hashtagsInput = document.getElementById('{{ form.hashtags_text.id_for_label }}');
+    const hashtagsInput = document.getElementById('{{ form.hashtags_text.id_for_label }}');
     let selectedHashtags = new Set();
 
     // Загрузка ранее выбранных хештегов при редактировании
     function loadExistingHashtags() {
-        // Для существующего рецепта - загружаем хештеги из формы
-        const existingHashtags = "{{ form.hashtags.value|default:''|escapejs }}".split(',').filter(tag => tag.trim() !== '');
+        const existingHashtags = "{{ form.hashtags_text.value|default:''|escapejs }}".split(',').filter(tag => tag.trim() !== '');
         existingHashtags.forEach(tag => {
             if (tag.trim()) {
                 addHashtagToSelection(tag.trim());
@@ -258,69 +293,169 @@ document.addEventListener('DOMContentLoaded', function() {
     // Загрузка существующих хештегов при редактировании
     loadExistingHashtags();
 
-    // Остальной JavaScript для управления формами (ингредиенты и шаги)
+    // Функция для обновления индексов в форме
+    function updateFormIndices(formsetContainer, prefix) {
+        const forms = formsetContainer.querySelectorAll('.ingredient-form, .cooking-step-form');
+        const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+        let visibleCount = 0;
+
+        forms.forEach((form, index) => {
+            if (form.style.display !== 'none') {
+                // Обновляем индексы в полях ввода
+                form.querySelectorAll('input, textarea, select').forEach(field => {
+                    if (field.name) {
+                        field.name = field.name.replace(new RegExp(`${prefix}-\\d+-`), `${prefix}-${visibleCount}-`);
+                    }
+                    if (field.id) {
+                        field.id = field.id.replace(new RegExp(`id_${prefix}-\\d+-`), `id_${prefix}-${visibleCount}-`);
+                    }
+                });
+
+                // Обновляем labels
+                form.querySelectorAll('label').forEach(label => {
+                    if (label.htmlFor) {
+                        label.htmlFor = label.htmlFor.replace(new RegExp(`id_${prefix}-\\d+-`), `id_${prefix}-${visibleCount}-`);
+                    }
+                });
+
+                visibleCount++;
+            }
+        });
+
+        if (totalFormsInput) {
+            totalFormsInput.value = visibleCount;
+        }
+    }
+
+    // Функция для получения следующего индекса формы
+    function getNextFormIndex(prefix) {
+        const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+        return parseInt(totalFormsInput.value);
+    }
 
     // Добавление ингредиентов
     document.getElementById('add-ingredient').addEventListener('click', function() {
         const formset = document.getElementById('ingredient-formset');
-        const totalForms = document.getElementById('id_ingredients-TOTAL_FORMS');
-        const formNum = parseInt(totalForms.value);
+        const formIndex = getNextFormIndex('ingredients');
 
-        const newForm = formset.querySelector('.ingredient-form').cloneNode(true);
-        newForm.innerHTML = newForm.innerHTML.replace(/ingredients-\d+-/g, `ingredients-${formNum}-`);
-        newForm.innerHTML = newForm.innerHTML.replace(/\[\d+\]/g, `[${formNum}]`);
-
-        // Очищаем значения в новой форме
-        const inputs = newForm.querySelectorAll('input');
-        inputs.forEach(input => {
-            if (input.type !== 'hidden') {
-                input.value = '';
-            }
-        });
-
-        // Добавляем кнопку удаления для новой формы
-        const deleteDiv = newForm.querySelector('.col-md-1');
-        deleteDiv.innerHTML = '<button type="button" class="btn btn-sm btn-danger remove-ingredient">Удалить</button>';
+        // Создаем новую форму из шаблона
+        const newForm = document.createElement('div');
+        newForm.className = 'card mb-3 ingredient-form';
+        newForm.innerHTML = `
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Название ингредиента</label>
+                        <input type="text" name="ingredients-${formIndex}-name" class="form-control" placeholder="Название ингредиента">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Количество</label>
+                        <input type="text" name="ingredients-${formIndex}-quantity" class="form-control" placeholder="Количество, например: 2 шт, 100 г">
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="button" class="btn btn-sm btn-danger remove-ingredient">Удалить</button>
+                    </div>
+                </div>
+                <input type="hidden" name="ingredients-${formIndex}-id" id="id_ingredients-${formIndex}-id">
+            </div>
+        `;
 
         formset.appendChild(newForm);
-        totalForms.value = formNum + 1;
+
+        // Обновляем TOTAL_FORMS
+        document.getElementById('id_ingredients-TOTAL_FORMS').value = formIndex + 1;
     });
 
     // Добавление шагов приготовления
     document.getElementById('add-cooking-step').addEventListener('click', function() {
         const formset = document.getElementById('cooking-step-formset');
-        const totalForms = document.getElementById('id_cooking_steps-TOTAL_FORMS');
-        const formNum = parseInt(totalForms.value);
+        const formIndex = getNextFormIndex('cooking_steps');
 
-        const newForm = formset.querySelector('.cooking-step-form').cloneNode(true);
-        newForm.innerHTML = newForm.innerHTML.replace(/cooking_steps-\d+-/g, `cooking_steps-${formNum}-`);
-        newForm.innerHTML = newForm.innerHTML.replace(/\[\d+\]/g, `[${formNum}]`);
-
-        // Очищаем значения в новой форме
-        const inputs = newForm.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            if (input.type !== 'hidden' && input.type !== 'checkbox') {
-                input.value = '';
-            }
-        });
-
-        // Добавляем кнопку удаления для новой формы
-        const deleteDiv = newForm.querySelector('.col-md-12');
-        deleteDiv.innerHTML = '<button type="button" class="btn btn-sm btn-danger remove-step">Удалить шаг</button>';
+        // Создаем новую форму из шаблона
+        const newForm = document.createElement('div');
+        newForm.className = 'card mb-3 cooking-step-form';
+        newForm.innerHTML = `
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label class="form-label">Шаг №</label>
+                        <input type="number" name="cooking_steps-${formIndex}-step_number" class="form-control" placeholder="Номер шага">
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label">Описание</label>
+                        <textarea name="cooking_steps-${formIndex}-description" class="form-control" rows="3" placeholder="Описание шага..."></textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Фото шага (необязательно)</label>
+                        <input type="file" name="cooking_steps-${formIndex}-photo" class="form-control">
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-sm btn-danger remove-step">Удалить шаг</button>
+                    </div>
+                </div>
+                <input type="hidden" name="cooking_steps-${formIndex}-id" id="id_cooking_steps-${formIndex}-id">
+            </div>
+        `;
 
         formset.appendChild(newForm);
-        totalForms.value = formNum + 1;
+
+        // Обновляем TOTAL_FORMS
+        document.getElementById('id_cooking_steps-TOTAL_FORMS').value = formIndex + 1;
     });
 
     // Удаление ингредиентов и шагов
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('remove-ingredient')) {
-            e.target.closest('.ingredient-form').remove();
+            const form = e.target.closest('.ingredient-form');
+            const formset = document.getElementById('ingredient-formset');
+
+            // Если форма уже сохранена в базе, помечаем для удаления
+            const idInput = form.querySelector('input[name$="-id"]');
+            if (idInput && idInput.value) {
+                const deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = idInput.name.replace('-id', '-DELETE');
+                deleteInput.value = 'on';
+                form.appendChild(deleteInput);
+                form.style.display = 'none'; // Скрываем форму вместо удаления
+            } else {
+                // Если форма новая, просто удаляем её
+                form.remove();
+            }
+
+            // Обновляем индексы
+            updateFormIndices(formset, 'ingredients');
         }
+
         if (e.target.classList.contains('remove-step')) {
-            e.target.closest('.cooking-step-form').remove();
+            const form = e.target.closest('.cooking-step-form');
+            const formset = document.getElementById('cooking-step-formset');
+
+            // Если форма уже сохранена в базе, помечаем для удаления
+            const idInput = form.querySelector('input[name$="-id"]');
+            if (idInput && idInput.value) {
+                const deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = idInput.name.replace('-id', '-DELETE');
+                deleteInput.value = 'on';
+                form.appendChild(deleteInput);
+                form.style.display = 'none'; // Скрываем форму вместо удаления
+            } else {
+                // Если форма новая, просто удаляем её
+                form.remove();
+            }
+
+            // Обновляем индексы
+            updateFormIndices(formset, 'cooking_steps');
         }
     });
+
+    // Инициализация - обновляем индексы при загрузке
+    updateFormIndices(document.getElementById('ingredient-formset'), 'ingredients');
+    updateFormIndices(document.getElementById('cooking-step-formset'), 'cooking_steps');
 });
 </script>
 
@@ -339,6 +474,12 @@ document.addEventListener('DOMContentLoaded', function() {
 #hashtag-select {
     height: auto;
     min-height: 100px;
+}
+
+/* Скрытые формы */
+.ingredient-form[style*="display: none"],
+.cooking-step-form[style*="display: none"] {
+    display: none !important;
 }
 </style>
 {% endblock %}
