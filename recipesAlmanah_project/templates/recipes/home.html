@@ -49,7 +49,19 @@
                         <strong>Время:</strong> {{ recipe.cooking_time }} мин.<br>
                         <strong>Порции:</strong> {{ recipe.servings }}<br>
                         <strong>Калории:</strong> {{ recipe.calories_per_100g }} ккал/100г<br>
-                        <strong>Сложность:</strong> {{ recipe.get_difficulty_display }}
+                        <strong>Сложность:</strong> {{ recipe.get_difficulty_display }}<br>
+                        <!-- Блок хештегов -->
+                        {% if recipe.hashtags.all %}
+                        <div class="hashtags mt-2">
+                            {% for hashtag in recipe.hashtags.all %}
+                                <span class="badge bg-secondary me-1">{{ hashtag.name }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="hashtags mt-2">
+                            <small class="text-muted">Нет хештегов</small>
+                        </div>
+                        {% endif %}
                     </small>
                 </div>
 

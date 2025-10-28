@@ -40,7 +40,7 @@ class RecipeListView(ListView):
     paginate_by = 9
 
     def get_queryset(self):
-        queryset = Recipe.objects.all().order_by('-created_at')
+        queryset = Recipe.objects.all().prefetch_related('hashtags').order_by('-created_at')
 
         # Поиск по ключевым словам в названии, описании, ингридиентах
         query = self.request.GET.get('q')
@@ -75,16 +75,14 @@ class RecipeCreateView(LoginRequiredMixin, CreateView):
     template_name = 'recipes/recipe_form.html'
 
     def get_context_data(self, **kwargs):
-        """Добавляем formsets в контекст"""
         context = super().get_context_data(**kwargs)
+        context['existing_hashtags'] = Hashtag.objects.all().order_by('name')
         if self.request.POST:
-            context['ingredient_formset'] = IngredientFormSet(self.request.POST, self.request.FILES,
-                                                              prefix='ingredients')
-            context['cooking_step_formset'] = CookingStepFormSet(self.request.POST, self.request.FILES,
-                                                                 prefix='cooking_steps')
+            context['ingredient_formset'] = IngredientFormSet(self.request.POST)
+            context['cooking_step_formset'] = CookingStepFormSet(self.request.POST)
         else:
-            context['ingredient_formset'] = IngredientFormSet(prefix='ingredients')
-            context['cooking_step_formset'] = CookingStepFormSet(prefix='cooking_steps')
+            context['ingredient_formset'] = IngredientFormSet()
+            context['cooking_step_formset'] = CookingStepFormSet()
         return context
 
     def form_valid(self, form):

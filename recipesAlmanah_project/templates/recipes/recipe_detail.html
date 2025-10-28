@@ -10,7 +10,7 @@
                 <h2 class="mb-0">{{ recipe.title }}</h2>
             </div>
 
-            <!-- ДОБАВЛЕНО: Главное фото рецепта -->
+
             {% if recipe.main_photo %}
             <img src="{{ recipe.main_photo.url }}" class="card-img-top" alt="{{ recipe.title }}" style="max-height: 400px; object-fit: cover;">
             {% endif %}
@@ -79,13 +79,16 @@
 {% endif %}
 
                 {% if recipe.hashtags.all %}
-                <h5>Хештеги</h5>
-                <div class="mb-4">
-                    {% for hashtag in recipe.hashtags.all %}
-                    <span class="badge bg-secondary me-1">#{{ hashtag.name }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
+            <div class="hashtags mt-2">
+                {% for hashtag in recipe.hashtags.all %}
+                    <span class="badge bg-secondary me-1">{{ hashtag.name }}</span>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="hashtags mt-2">
+                <small class="text-muted">Нет хештегов</small>
+            </div>
+            {% endif %}
             </div>
             <div class="card-footer">
                 <div class="btn-group">
