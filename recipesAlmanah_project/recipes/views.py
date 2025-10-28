@@ -42,7 +42,7 @@ class RecipeListView(ListView):
     def get_queryset(self):
         queryset = Recipe.objects.all().prefetch_related('hashtags').order_by('-created_at')
 
-        # Поиск по ключевым словам в названии, описании, ингридиентах
+        # Поиск по ключевым словам
         query = self.request.GET.get('q')
         if query:
             queryset = queryset.filter(
@@ -51,10 +51,13 @@ class RecipeListView(ListView):
                 Q(ingredients__name__icontains=query)
             ).distinct()
 
-        # Фильтрация по хештегам
-        hashtag = self.request.GET.get('hashtag')
-        if hashtag:
-            queryset = queryset.filter(hashtags__name=hashtag)
+        # Фильтрация по нескольким хештегам
+        selected_hashtags = self.request.GET.getlist('hashtags')
+        if selected_hashtags:
+            # Фильтруем рецепты, которые содержат ВСЕ выбранные хештеги
+            for hashtag in selected_hashtags:
+                queryset = queryset.filter(hashtags__name=hashtag)
+            queryset = queryset.distinct()
 
         # Фильтрация по калорийности
         max_calories = self.request.GET.get('max_calories')
@@ -62,6 +65,16 @@ class RecipeListView(ListView):
             queryset = queryset.filter(calories_per_100g__lte=max_calories)
 
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['all_hashtags'] = Hashtag.objects.all().order_by('name')
+
+        # Получаем список выбранных хештегов для отображения
+        selected_hashtags = self.request.GET.getlist('hashtags')
+        context['selected_hashtags'] = selected_hashtags
+
+        return context
 
 #Отображение детальной информации о конкретном рецепте
 class RecipeDetailView(DetailView):
@@ -219,10 +232,10 @@ def add_to_favorites(request, pk):
 #Реализует расширенный поиск рецептов с фильтрацией
 def search_recipes(request):
     query = request.GET.get('q', '')
-    hashtag = request.GET.get('hashtag', '')
     max_calories = request.GET.get('max_calories', '')
+    selected_hashtags = request.GET.getlist('hashtags', [])
 
-    recipes = Recipe.objects.all()
+    recipes = Recipe.objects.all().prefetch_related('hashtags')
 
     if query:
         recipes = recipes.filter(
@@ -231,17 +244,20 @@ def search_recipes(request):
             Q(ingredients__name__icontains=query)
         ).distinct()
 
-    if hashtag:
-        recipes = recipes.filter(hashtags__name=hashtag)
+    # Фильтрация по нескольким хештегам
+    if selected_hashtags:
+        for hashtag in selected_hashtags:
+            recipes = recipes.filter(hashtags__name=hashtag)
+        recipes = recipes.distinct()
 
     if max_calories:
-        recipes = recipes.filter(calories_per_100g__lte=int(max_calories))
+        recipes = recipes.filter(calories_per_100g__lte=max_calories)
 
     context = {
         'recipes': recipes,
         'query': query,
-        'hashtag': hashtag,
         'max_calories': max_calories,
+        'selected_hashtags': selected_hashtags,
+        'all_hashtags': Hashtag.objects.all().order_by('name'),
     }
-
     return render(request, 'recipes/search_results.html', context)
