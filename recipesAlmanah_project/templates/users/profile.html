@@ -1,58 +1,398 @@
-<!--Страница профиля-->
-<!--Наследование-->
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Профиль - {{ user.username }}{% endblock %}
-<!--Основная информация-->
+{% block title %}{{ title }}{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">Профиль пользователя</h5>
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Левая колонка - информация профиля -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Профиль пользователя</h5>
+                </div>
+                <div class="card-body text-center">
+                    <!-- Фото профиля -->
+                    {% if user.profile.profile_photo %}
+                        <img src="{{ user.profile.profile_photo.url }}"
+                             alt="Фото профиля"
+                             class="img-fluid rounded-circle mb-3 profile-photo"
+                             style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-3 mx-auto profile-photo-placeholder">
+                            <i class="fas fa-user fa-3x text-secondary"></i>
+                        </div>
+                    {% endif %}
+
+                    <h4 class="mb-1">{{ user.username }}</h4>
+                    {% if user.first_name or user.last_name %}
+                        <p class="text-muted mb-2">{{ user.first_name }} {{ user.last_name }}</p>
+                    {% endif %}
+
+                    <div class="user-info text-start">
+                        <p class="mb-1"><i class="fas fa-envelope me-2 text-primary"></i><strong>Email:</strong> {{ user.email }}</p>
+                        <p class="mb-1"><i class="fas fa-calendar me-2 text-primary"></i><strong>Регистрация:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
+
+                        {% if user.profile.bio %}
+                            <p class="mt-3"><strong>О себе:</strong><br>{{ user.profile.bio }}</p>
+                        {% endif %}
+
+                        {% if user.profile.location %}
+                            <p class="mb-1"><i class="fas fa-map-marker-alt me-2 text-primary"></i><strong>Местоположение:</strong> {{ user.profile.location }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'recipes:recipe-create' %}" class="btn btn-success btn-lg w-100 mb-2">
+                            <i class="fas fa-plus-circle me-2"></i>Добавить рецепт
+                        </a>
+                        <a href="{% url 'users:edit_profile' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-edit me-2"></i>Редактировать профиль
+                        </a>
+                    </div>
+                </div>
             </div>
-            <!--Карточка профиля-->
-            <div class="card-body">
-                <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
-                <p><strong>Email:</strong> {{ user.email }}</p>
-                <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
-                
-                <div class="mt-3">
-                    <a href="{% url 'recipes:recipe-create' %}" class="btn btn-success">Добавить рецепт</a>
+
+            <!-- Статистика -->
+            <div class="card shadow-sm border-0 mt-3">
+                <div class="card-header bg-info text-white py-3">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Статистика</h6>
+                </div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-item text-center">
+                            <div class="stat-value text-primary">{{ user_recipes.count }}</div>
+                            <div class="stat-label">Рецепты</div>
+                        </div>
+                        <div class="stat-item text-center">
+                            <div class="stat-value text-warning">{{ user_comments.count }}</div>
+                            <div class="stat-label">Комментарии</div>
+                        </div>
+                        <div class="stat-item text-center">
+                            <div class="stat-value text-success">{{ user_favorites.count }}</div>
+                            <div class="stat-label">Избранное</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!--Карточка реццептов пользователя-->
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Мои рецепты ({{ user_recipes.count }})</h5>
-            </div>
-            <div class="card-body">
-                {% if user_recipes %}
-                <div class="list-group">
-                    {% for recipe in user_recipes %}
-                    <div class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">{{ recipe.title }}</h6>
-                            <small>{{ recipe.created_at|date:"d.m.Y" }}</small>
-                        </div>
-                        <p class="mb-1">{{ recipe.description|truncatewords:20 }}</p>
-                        <div class="btn-group btn-group-sm">
-                            <a href="{% url 'recipes:recipe-detail' recipe.pk %}" class="btn btn-outline-success">Просмотреть</a>
-                            <a href="{% url 'recipes:recipe-update' recipe.pk %}" class="btn btn-outline-warning">Редактировать</a>
-                        </div>
-                    </div>
-                    {% endfor %}
+        <!-- Правая колонка - рецепты и избранное -->
+        <div class="col-md-8">
+            <!-- Переключаемые вкладки рецептов -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <ul class="nav nav-pills nav-fill" id="recipesTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="my-recipes-tab" data-bs-toggle="pill" data-bs-target="#my-recipes" type="button" role="tab" aria-controls="my-recipes" aria-selected="true">
+                                <i class="fas fa-book me-2"></i>Мои рецепты
+                                <span class="badge bg-primary ms-2">{{ user_recipes.count }}</span>
+                            </button>
+                        </li>
+                        {% if user.profile.show_favorites %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="favorites-tab" data-bs-toggle="pill" data-bs-target="#favorites" type="button" role="tab" aria-controls="favorites" aria-selected="false">
+                                <i class="fas fa-heart me-2"></i>Избранные рецепты
+                                <span class="badge bg-danger ms-2">{{ favorite_recipes.count }}</span>
+                            </button>
+                        </li>
+                        {% endif %}
+                    </ul>
                 </div>
-                {% else %}
-                <p class="text-muted">У вас пока нет рецептов.</p>
-                <a href="{% url 'recipes:recipe-create' %}" class="btn btn-success">Добавить первый рецепт</a>
-                {% endif %}
+
+                <div class="card-body p-0">
+                    <div class="tab-content" id="recipesTabsContent">
+                        <!-- Вкладка моих рецептов -->
+                        <div class="tab-pane fade show active" id="my-recipes" role="tabpanel" aria-labelledby="my-recipes-tab">
+                            <div class="p-4">
+                                {% if user_recipes %}
+                                <div class="recipes-grid">
+                                    {% for recipe in user_recipes %}
+                                    <div class="recipe-card card border-0 shadow-sm h-100">
+                                        {% if recipe.main_photo %}
+                                        <img src="{{ recipe.main_photo.url }}" class="card-img-top recipe-image" alt="{{ recipe.title }}">
+                                        {% else %}
+                                        <div class="recipe-image-placeholder card-img-top d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-utensils fa-3x text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ recipe.title }}</h5>
+                                            <p class="card-text text-muted">{{ recipe.description|truncatewords:15 }}</p>
+                                            <div class="recipe-meta">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>{{ recipe.cooking_time }} мин
+                                                    <i class="fas fa-fire ms-2 me-1"></i>{{ recipe.calories_per_100g }} ккал
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-transparent border-top-0">
+                                            <div class="btn-group w-100">
+                                                <a href="{% url 'recipes:recipe-detail' recipe.pk %}" class="btn btn-outline-success btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>Просмотреть
+                                                </a>
+                                                <a href="{% url 'recipes:recipe-update' recipe.pk %}" class="btn btn-outline-warning btn-sm">
+                                                    <i class="fas fa-edit me-1"></i>Редактировать
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-book fa-4x text-muted mb-3"></i>
+                                    <h4 class="text-muted">У вас пока нет рецептов</h4>
+                                    <p class="text-muted mb-4">Создайте свой первый рецепт и поделитесь им с сообществом!</p>
+                                    <a href="{% url 'recipes:recipe-create' %}" class="btn btn-success btn-lg">
+                                        <i class="fas fa-plus-circle me-2"></i>Добавить первый рецепт
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Вкладка избранных рецептов -->
+                        {% if user.profile.show_favorites %}
+                        <div class="tab-pane fade" id="favorites" role="tabpanel" aria-labelledby="favorites-tab">
+                            <div class="p-4">
+                                {% if favorite_recipes %}
+                                <div class="recipes-grid">
+                                    {% for recipe in favorite_recipes %}
+                                    <div class="recipe-card card border-0 shadow-sm h-100">
+                                        {% if recipe.main_photo %}
+                                        <img src="{{ recipe.main_photo.url }}" class="card-img-top recipe-image" alt="{{ recipe.title }}">
+                                        {% else %}
+                                        <div class="recipe-image-placeholder card-img-top d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-utensils fa-3x text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ recipe.title }}</h5>
+                                            <p class="card-text text-muted">{{ recipe.description|truncatewords:15 }}</p>
+                                            <div class="recipe-meta">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user me-1"></i>{{ recipe.author.username }}
+                                                    <i class="fas fa-clock ms-2 me-1"></i>{{ recipe.cooking_time }} мин
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-transparent border-top-0">
+                                            <div class="btn-group w-100">
+                                                <a href="{% url 'recipes:recipe-detail' recipe.pk %}" class="btn btn-outline-success btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>Просмотреть
+                                                </a>
+                                                <form method="post" action="{% url 'users:remove-favorite' recipe.pk %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                        <i class="fas fa-heart-broken me-1"></i>Удалить
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-heart fa-4x text-muted mb-3"></i>
+                                    <h4 class="text-muted">У вас пока нет избранных рецептов</h4>
+                                    <p class="text-muted mb-4">Нажимайте ♡ на понравившихся рецептах, чтобы добавлять их сюда</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Комментарии -->
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Мои комментарии ({{ user_comments.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if user_comments %}
+                    <div class="comments-list">
+                        {% for comment in user_comments %}
+                        <div class="comment-item border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h6 class="mb-1">К рецепту: <a href="{% url 'recipes:recipe-detail' comment.recipe.pk %}" class="text-decoration-none">{{ comment.recipe.title }}</a></h6>
+                                <small class="text-muted">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                            </div>
+                            <p class="mb-2">{{ comment.text|truncatewords:20 }}</p>
+                            <a href="{% url 'recipes:recipe-detail' comment.recipe.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-external-link-alt me-1"></i>Перейти к рецепту
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">У вас пока нет комментариев</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.profile-photo {
+    border: 4px solid #e9ecef;
+    transition: transform 0.3s ease;
+}
+
+.profile-photo:hover {
+    transform: scale(1.05);
+}
+
+.profile-photo-placeholder {
+    width: 150px;
+    height: 150px;
+    border: 4px solid #e9ecef;
+}
+
+.user-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.stat-item {
+    padding: 10px;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.recipe-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+.recipe-image {
+    height: 180px;
+    object-fit: cover;
+}
+
+.recipe-image-placeholder {
+    height: 180px;
+    background: #f8f9fa;
+}
+
+.recipe-meta {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e9ecef;
+}
+
+.nav-pills .nav-link {
+    border-radius: 8px;
+    margin: 0 5px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+.nav-pills .nav-link:not(.active) {
+    color: #6c757d;
+}
+
+.nav-pills .nav-link:not(.active):hover {
+    color: #495057;
+    background-color: #e9ecef;
+}
+
+.comments-list .comment-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #198754 0%, #157347 100%);
+    border: none;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
+}
+
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.badge {
+    font-size: 0.7rem;
+    padding: 0.35em 0.65em;
+}
+
+@media (max-width: 768px) {
+    .recipes-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-pills .nav-link {
+        margin: 2px 0;
+    }
+}
+</style>
+
+<!-- Добавление Font Awesome для иконок -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<!-- Bootstrap JavaScript для работы табов -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

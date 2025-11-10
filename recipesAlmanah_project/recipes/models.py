@@ -38,6 +38,15 @@ class Recipe(models.Model):
     def get_absolute_url(self):
         return reverse('recipe-detail', kwargs={'pk': self.pk})
 
+    @property
+    def favorite_count(self):
+        return self.favorite_set.count()
+
+    def is_favorite_for_user(self, user):
+        if not user.is_authenticated:
+            return False
+        return self.favorite_set.filter(user=user).exists()
+
 #Описание ингридиента
 class Ingredient(models.Model):
     recipe = models.ForeignKey(Recipe, related_name='ingredients', on_delete=models.CASCADE)
@@ -72,3 +81,4 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.recipe.title}"
+

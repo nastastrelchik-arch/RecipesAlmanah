@@ -11,4 +11,6 @@ urlpatterns = [
     path('recipe/<int:pk>/delete/', views.RecipeDeleteView.as_view(), name='recipe-delete'),
     path('recipe/<int:pk>/favorite/', views.add_to_favorites, name='add-to-favorites'),
     path('search/', views.search_recipes, name='search-recipes'),
+    path('recipe/<int:pk>/remove-favorite/', views.remove_favorite, name='remove-favorite'),
+    path('recipe/<int:pk>/remove-favorite/', views.remove_from_favorites, name='remove-from-favorites'),
 ]

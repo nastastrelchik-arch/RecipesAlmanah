@@ -12,6 +12,8 @@ class Profile(models.Model):
     birth_date = models.DateField(null=True, blank=True)
     profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
     show_favorites = models.BooleanField(default=True)
+    User.add_to_class('profile_photo', models.ImageField(upload_to='profile_photos/', null=True, blank=True))
+    User.add_to_class('show_favorites', models.BooleanField(default=True))
 
     #Описание функции возврата данных
     def __str__(self):

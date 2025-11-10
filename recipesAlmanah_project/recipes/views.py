@@ -2,7 +2,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.db.models import Q
+from django.db.models import Q, Count, Exists, OuterRef
+from django.contrib import messages
+from django.urls import reverse  # Добавьте этот импорт
 from .models import Recipe, Favorite, Hashtag, Ingredient, CookingStep
 from .forms import RecipeForm, IngredientForm, CookingStepForm
 
@@ -34,17 +36,35 @@ CookingStepFormSet = inlineformset_factory(
 
 #Отображение списка рецептов с поддержкой пагинации(разделение на мелкие части), поиска и фильтрации
 class RecipeListView(ListView):
-    #Связь с Recipe
     model = Recipe
-    #Ссылка на шаблон
     template_name = 'recipes/home.html'
-    #Имя переменной в контексте шаблона
     context_object_name = 'recipes'
-    #Количество рецептов на странице
     paginate_by = 9
 
     def get_queryset(self):
+        # Базовый запрос
         queryset = Recipe.objects.all().prefetch_related('hashtags').order_by('-created_at')
+
+        # Простой способ - не используем аннотацию для favorite_count
+        # Вместо этого будем использовать свойство в шаблоне или отдельный запрос
+
+        # Добавляем аннотацию для проверки избранного
+        if self.request.user.is_authenticated:
+            favorite_recipe_ids = Favorite.objects.filter(
+                user=self.request.user
+            ).values_list('recipe_id', flat=True)
+
+            from django.db.models import Case, When, BooleanField
+            queryset = queryset.annotate(
+                is_favorite=Case(
+                    When(id__in=list(favorite_recipe_ids), then=True),
+                    default=False,
+                    output_field=BooleanField()
+                )
+            )
+        else:
+            from django.db.models import Value, BooleanField
+            queryset = queryset.annotate(is_favorite=Value(False, output_field=BooleanField()))
 
         # Поиск по ключевым словам
         query = self.request.GET.get('q')
@@ -58,7 +78,6 @@ class RecipeListView(ListView):
         # Фильтрация по нескольким хештегам
         selected_hashtags = self.request.GET.getlist('hashtags')
         if selected_hashtags:
-            # Фильтруем рецепты, которые содержат ВСЕ выбранные хештеги
             for hashtag in selected_hashtags:
                 queryset = queryset.filter(hashtags__name=hashtag)
             queryset = queryset.distinct()
@@ -77,6 +96,15 @@ class RecipeListView(ListView):
         # Получаем список выбранных хештегов для отображения
         selected_hashtags = self.request.GET.getlist('hashtags')
         context['selected_hashtags'] = selected_hashtags
+
+        # Альтернативный способ: передаем список ID избранных рецептов
+        if self.request.user.is_authenticated:
+            favorite_recipe_ids = Favorite.objects.filter(
+                user=self.request.user
+            ).values_list('recipe_id', flat=True)
+            context['favorite_recipe_ids'] = list(favorite_recipe_ids)
+        else:
+            context['favorite_recipe_ids'] = []
 
         return context
 
@@ -272,9 +300,17 @@ class RecipeDeleteView(LoginRequiredMixin, DeleteView):
 def add_to_favorites(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
     favorite, created = Favorite.objects.get_or_create(user=request.user, recipe=recipe)
+
     if not created:
         favorite.delete()
-    return redirect('recipes:recipe-detail', pk=pk)
+        messages.success(request, 'Рецепт удален из избранного.')
+    else:
+        messages.success(request, 'Рецепт добавлен в избранное!')
+
+    # Возвращаем на предыдущую страницу или на главную
+    return redirect(request.META.get('HTTP_REFERER', reverse('recipes:home')))
+
+
 
 #Реализует расширенный поиск рецептов с фильтрацией
 def search_recipes(request):
@@ -283,6 +319,21 @@ def search_recipes(request):
     selected_hashtags = request.GET.getlist('hashtags', [])
 
     recipes = Recipe.objects.all().prefetch_related('hashtags')
+    recipes = recipes.annotate(favorite_count=Count('favorite'))
+
+    # Добавляем аннотацию для проверки избранного
+    if request.user.is_authenticated:
+        recipes = recipes.annotate(
+            is_favorite=Exists(
+                Favorite.objects.filter(
+                    recipe=OuterRef('pk'),
+                    user=request.user
+                )
+            )
+        )
+    else:
+        from django.db.models import Value, BooleanField
+        recipes = recipes.annotate(is_favorite=Value(False, output_field=BooleanField()))
 
     if query:
         recipes = recipes.filter(
@@ -300,11 +351,46 @@ def search_recipes(request):
     if max_calories:
         recipes = recipes.filter(calories_per_100g__lte=max_calories)
 
+    # Передаем список ID избранных рецептов
+    favorite_recipe_ids = []
+    if request.user.is_authenticated:
+        favorite_recipe_ids = Favorite.objects.filter(
+            user=request.user
+        ).values_list('recipe_id', flat=True)
+
     context = {
         'recipes': recipes,
         'query': query,
         'max_calories': max_calories,
         'selected_hashtags': selected_hashtags,
         'all_hashtags': Hashtag.objects.all().order_by('name'),
+        'favorite_recipe_ids': list(favorite_recipe_ids),
     }
     return render(request, 'recipes/search_results.html', context)
+
+def remove_favorite(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk)
+    favorite = Favorite.objects.filter(user=request.user, recipe=recipe)
+
+    if favorite.exists():
+        favorite.delete()
+        messages.success(request, 'Рецепт удален из избранного.')
+    else:
+        messages.error(request, 'Этот рецепт не был в избранном.')
+
+    return redirect('users:profile')
+
+
+# Удаление из избранного
+@login_required
+def remove_from_favorites(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk)
+    favorite = Favorite.objects.filter(user=request.user, recipe=recipe)
+
+    if favorite.exists():
+        favorite.delete()
+        messages.success(request, 'Рецепт удален из избранного.')
+    else:
+        messages.error(request, 'Этот рецепт не был в избранном.')
+
+    return redirect(request.META.get('HTTP_REFERER', reverse('recipes:home')))

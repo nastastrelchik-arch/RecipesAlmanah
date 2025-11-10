@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow border-0">
+                <div class="card-header bg-gradient-warning text-dark py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-user-edit fa-lg me-2"></i>
+                        <h4 class="mb-0">{{ title }}</h4>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Основная информация -->
+                        <div class="section-header mb-4">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-user-circle me-2"></i>Основная информация
+                            </h5>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ u_form.username }}
+                                    <label for="{{ u_form.username.id_for_label }}" class="form-label">Имя пользователя</label>
+                                    {% if u_form.username.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ u_form.username.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ u_form.email }}
+                                    <label for="{{ u_form.email.id_for_label }}" class="form-label">Email адрес</label>
+                                    {% if u_form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ u_form.email.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ u_form.first_name }}
+                                    <label for="{{ u_form.first_name.id_for_label }}" class="form-label">Имя</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ u_form.last_name }}
+                                    <label for="{{ u_form.last_name.id_for_label }}" class="form-label">Фамилия</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Дополнительная информация -->
+                        <div class="section-header mb-4">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Дополнительная информация
+                            </h5>
+                        </div>
+
+                        <!-- Фото профиля -->
+                        <div class="row align-items-center mb-4">
+                            <div class="col-md-4 text-center">
+                                {% if request.user.profile.profile_photo %}
+                                    <div class="current-photo mb-3">
+                                        <img src="{{ request.user.profile.profile_photo.url }}"
+                                             alt="Текущее фото"
+                                             class="img-thumbnail rounded-circle"
+                                             style="width: 150px; height: 150px; object-fit: cover;">
+                                        <p class="text-muted small mt-2">Текущее фото</p>
+                                    </div>
+                                {% else %}
+                                    <div class="no-photo mb-3">
+                                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                             style="width: 150px; height: 150px;">
+                                            <i class="fas fa-user fa-3x text-secondary"></i>
+                                        </div>
+                                        <p class="text-muted small mt-2">Фото не установлено</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="{{ p_form.profile_photo.id_for_label }}" class="form-label fw-bold">Загрузить новое фото</label>
+                                    {{ p_form.profile_photo }}
+                                    <div class="form-text">Рекомендуемый размер: 150x150 px. Поддерживаются JPG, PNG.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Био -->
+                        <div class="form-group mb-4">
+                            <label for="{{ p_form.bio.id_for_label }}" class="form-label fw-bold">О себе</label>
+                            {{ p_form.bio }}
+                            <div class="form-text">Расскажите немного о себе (максимум 500 символов).</div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ p_form.location }}
+                                    <label for="{{ p_form.location.id_for_label }}" class="form-label">Местоположение</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ p_form.birth_date }}
+                                    <label for="{{ p_form.birth_date.id_for_label }}" class="form-label">Дата рождения</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Настройки -->
+                        <div class="settings-section mb-4">
+                            <label class="form-label fw-bold">Настройки профиля</label>
+                            <div class="form-check form-switch mt-2">
+                                {{ p_form.show_favorites }}
+                                <label class="form-check-label" for="{{ p_form.show_favorites.id_for_label }}">
+                                    Показывать избранные рецепты в моем профиле
+                                </label>
+                                <div class="form-text">Если включено, другие пользователи смогут видеть ваши избранные рецепты.</div>
+                            </div>
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-flex justify-content-between align-items-center mt-5 pt-3 border-top">
+                            <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Вернуться к профилю
+                            </a>
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="fas fa-save me-2"></i>Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.section-header {
+    border-left: 4px solid #0d6efd;
+    padding-left: 1rem;
+}
+
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: none;
+}
+
+.form-floating {
+    position: relative;
+}
+
+.form-floating > .form-control {
+    height: calc(3.5rem + 2px);
+    padding: 1rem 0.75rem;
+}
+
+.form-floating > label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    padding: 1rem 0.75rem;
+    pointer-events: none;
+    border: 1px solid transparent;
+    transform-origin: 0 0;
+    transition: opacity .1s ease-in-out, transform .1s ease-in-out;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    opacity: .65;
+    transform: scale(.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.form-switch .form-check-input {
+    width: 3em;
+    margin-right: 0.5rem;
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+}
+
+.current-photo img {
+    transition: transform 0.3s ease;
+}
+
+.current-photo img:hover {
+    transform: scale(1.05);
+}
+
+.no-photo .fa-user {
+    opacity: 0.5;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #198754 0%, #157347 100%);
+    border: none;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
+}
+
+.btn-outline-secondary:hover {
+    transform: translateY(-1px);
+}
+</style>
+
+<!-- Добавление Font Awesome для иконок -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script>
+// Добавляем классы к полям форм для стилизации
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавляем классы к полям User формы
+    const userFields = [
+        '{{ u_form.username.id_for_label }}',
+        '{{ u_form.email.id_for_label }}',
+        '{{ u_form.first_name.id_for_label }}',
+        '{{ u_form.last_name.id_for_label }}'
+    ];
+
+    userFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.className = 'form-control';
+        }
+    });
+
+    // Добавляем классы к полям Profile формы
+    const profileFields = [
+        '{{ p_form.bio.id_for_label }}',
+        '{{ p_form.location.id_for_label }}',
+        '{{ p_form.birth_date.id_for_label }}',
+        '{{ p_form.profile_photo.id_for_label }}'
+    ];
+
+    profileFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            if (fieldId === '{{ p_form.bio.id_for_label }}') {
+                field.className = 'form-control';
+                field.rows = 4;
+            } else if (fieldId === '{{ p_form.profile_photo.id_for_label }}') {
+                field.className = 'form-control';
+            } else {
+                field.className = 'form-control';
+            }
+        }
+    });
+
+    // Специальная обработка для поля show_favorites
+    const showFavorites = document.getElementById('{{ p_form.show_favorites.id_for_label }}');
+    if (showFavorites) {
+        showFavorites.className = 'form-check-input';
+    }
+});
+</script>
+{% endblock %}

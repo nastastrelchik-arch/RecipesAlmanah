@@ -1,35 +1,45 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Главная страница - Рецептурный альманах{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
-        <h1>Рецепты</h1>
+        <h1><i class="fas fa-utensils me-2 text-success"></i>Главная</h1>
 
         <!-- Форма поиска -->
         <form method="get" action="{% url 'recipes:search-recipes' %}" class="row g-3 align-items-end" id="search-form">
             <div class="col-md-3">
-                <input type="text" name="q" class="form-control" placeholder="Поиск рецептов..." value="{{ request.GET.q }}">
+                <div class="form-floating">
+                    <input type="text" name="q" class="form-control" placeholder="Поиск рецептов..." value="{{ request.GET.q }}" id="searchInput">
+                    <label for="searchInput"><i class="fas fa-search me-1"></i>Поиск рецептов...</label>
+                </div>
             </div>
             <div class="col-md-2">
-                <input type="number" name="max_calories" class="form-control" placeholder="Макс. калории" value="{{ request.GET.max_calories }}">
+                <div class="form-floating">
+                    <input type="number" name="max_calories" class="form-control" placeholder="Макс. калории" value="{{ request.GET.max_calories }}" id="caloriesInput">
+                    <label for="caloriesInput"><i class="fas fa-fire me-1"></i>Макс. калории</label>
+                </div>
             </div>
             <div class="col-md-3">
-                <!-- Выпадающий список для хештегов -->
-                <label class="form-label">Хештеги:</label>
-                <div class="dropdown">
-                    <button type="button" class="btn btn-outline-secondary w-100 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="hashtagsDropdown">
-                        Выбрать хештеги
+                <!-- Улучшенный выпадающий список для хештегов -->
+                <label class="form-label"><i class="fas fa-tags me-1"></i>Хештеги:</label>
+                <div class="dropdown hashtags-dropdown">
+                    <button type="button" class="btn btn-outline-success w-100 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="hashtagsDropdown">
+                        <i class="fas fa-filter me-1"></i>Выбрать хештеги
                         {% if selected_hashtags %}
                         <span class="badge bg-primary ms-1">{{ selected_hashtags|length }}</span>
                         {% endif %}
                     </button>
-                    <ul class="dropdown-menu p-3" style="width: 300px; max-height: 400px; overflow-y: auto;">
-                        <div class="hashtags-checkboxes">
+                    <div class="dropdown-menu p-0" style="min-width: 320px;">
+                        <div class="dropdown-header">
+                            <i class="fas fa-hashtag me-2"></i>Выберите хештеги
+                        </div>
+                        <div class="hashtags-checkboxes p-3">
                             {% for hashtag in all_hashtags %}
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="hashtags" value="{{ hashtag.name }}" 
+                                <input class="form-check-input" type="checkbox" name="hashtags" value="{{ hashtag.name }}"
                                        id="hashtag-{{ forloop.counter }}"
                                        {% if hashtag.name in selected_hashtags %}checked{% endif %}>
                                 <label class="form-check-label" for="hashtag-{{ forloop.counter }}">
@@ -37,27 +47,69 @@
                                 </label>
                             </div>
                             {% empty %}
-                            <small class="text-muted">Хештегов пока нет</small>
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-info-circle me-1"></i>Хештегов пока нет
+                            </div>
                             {% endfor %}
                         </div>
-                    </ul>
+                        <div class="dropdown-footer">
+                            <small class="text-muted">Выбрано: <span id="selected-count">{{ selected_hashtags|length }}</span></small>
+                            <button type="button" class="btn btn-success btn-sm" onclick="document.getElementById('search-form').submit()">
+                                <i class="fas fa-check me-1"></i>Применить
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-success w-100">Найти</button>
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="fas fa-search me-1"></i>Найти
+                </button>
             </div>
             <div class="col-md-2">
-                <a href="{% url 'recipes:home' %}" class="btn btn-outline-secondary w-100">Сбросить</a>
+                <a href="{% url 'recipes:home' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-refresh me-1"></i>Сбросить
+                </a>
             </div>
         </form>
 
-        <!-- Показать выбранные хештеги -->
-        {% if selected_hashtags %}
-        <div class="mt-3">
-            <strong>Выбранные хештеги:</strong>
+        <!-- Показать выбранные хештеги и параметры поиска -->
+        {% if request.GET.q or request.GET.max_calories or selected_hashtags %}
+        <div class="mt-3 selected-hashtags-container">
+            <strong><i class="fas fa-filter me-1 text-success"></i>Активные фильтры:</strong>
+
+            {% if request.GET.q %}
+                <span class="badge bg-info me-1 mb-1">
+                    <i class="fas fa-search me-1"></i>Поиск: "{{ request.GET.q }}"
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'q' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="text-white ms-1">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
+            {% endif %}
+
+            {% if request.GET.max_calories %}
+                <span class="badge bg-warning text-dark me-1 mb-1">
+                    <i class="fas fa-fire me-1"></i>Макс. {{ request.GET.max_calories }} ккал
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'max_calories' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="text-dark ms-1">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
+            {% endif %}
+
             {% for hashtag in selected_hashtags %}
-                <span class="badge bg-primary me-1">{{ hashtag }}</span>
+                <span class="badge bg-primary me-1 mb-1">
+                    <i class="fas fa-hashtag me-1"></i>{{ hashtag }}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'hashtags' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% for h in selected_hashtags %}{% if h != hashtag %}hashtags={{ h }}&{% endif %}{% endfor %}" class="text-white ms-1">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
             {% endfor %}
+
+            {% if request.GET.q or request.GET.max_calories or selected_hashtags %}
+                <a href="{% url 'recipes:home' %}" class="btn btn-outline-danger btn-sm ms-2">
+                    <i class="fas fa-times me-1"></i>Очистить все
+                </a>
+            {% endif %}
         </div>
         {% endif %}
     </div>
@@ -69,51 +121,83 @@
     {% for recipe in recipes %}
     <div class="col-lg-4 col-md-6 mb-4">
         <!-- Карточка рецепта -->
-        <div class="card recipe-card h-100">
+        <div class="card recipe-card h-100 shadow-sm">
             <!-- Главное фото рецепта -->
             {% if recipe.main_photo %}
-            <img src="{{ recipe.main_photo.url }}" class="card-img-top" alt="{{ recipe.title }}" style="height: 200px; object-fit: cover;">
+            <img src="{{ recipe.main_photo.url }}" class="card-img-top recipe-image" alt="{{ recipe.title }}">
             {% else %}
-            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                <span class="text-muted">Нет фото</span>
+            <div class="recipe-image-placeholder card-img-top d-flex align-items-center justify-content-center">
+                <i class="fas fa-utensils fa-3x text-muted"></i>
             </div>
             {% endif %}
 
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">{{ recipe.title }}</h5>
-                <p class="card-text flex-grow-1">{{ recipe.description|truncatewords:15 }}</p>
+            <!-- Бейдж избранного -->
+            <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge bg-danger favorite-badge">
+                    <i class="fas fa-heart me-1"></i>
+                   <span class="favorite-count">{{ recipe.favorite_set.count }}</span>
+                </span>
+            </div>
 
-                <div class="recipe-meta mb-2">
-                    <small class="text-muted">
-                        <strong>Время:</strong> {{ recipe.cooking_time }} мин.<br>
-                        <strong>Порции:</strong> {{ recipe.servings }}<br>
-                        <strong>Калории:</strong> {{ recipe.calories_per_100g }} ккал/100г<br>
-                        <strong>Сложность:</strong> {{ recipe.get_difficulty_display }}
-                    </small>
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title text-truncate">{{ recipe.title }}</h5>
+                <p class="card-text flex-grow-1 text-muted">{{ recipe.description|truncatewords:20 }}</p>
+
+                <div class="recipe-meta mb-3">
+                    <div class="meta-item d-flex align-items-center mb-2">
+                        <i class="fas fa-clock text-primary me-2"></i>
+                        <small><strong>Время:</strong> {{ recipe.cooking_time }} мин.</small>
+                    </div>
+                    <div class="meta-item d-flex align-items-center mb-2">
+                        <i class="fas fa-utensils text-success me-2"></i>
+                        <small><strong>Порции:</strong> {{ recipe.servings }}</small>
+                    </div>
+                    <div class="meta-item d-flex align-items-center mb-2">
+                        <i class="fas fa-fire text-warning me-2"></i>
+                        <small><strong>Калории:</strong> {{ recipe.calories_per_100g }} ккал/100г</small>
+                    </div>
+                    <div class="meta-item d-flex align-items-center">
+                        <i class="fas fa-star text-info me-2"></i>
+                        <small><strong>Сложность:</strong> {{ recipe.get_difficulty_display }}</small>
+                    </div>
                 </div>
 
                 <!-- Блок хештегов -->
                 {% if recipe.hashtags.all %}
-                <div class="hashtags mt-2 mb-2">
+                <div class="hashtags mt-2 mb-3">
                     {% for hashtag in recipe.hashtags.all %}
-                        <span class="badge bg-secondary me-1 mb-1">{{ hashtag.name }}</span>
+                        <span class="badge bg-light text-dark border me-1 mb-1">{{ hashtag.name }}</span>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="hashtags mt-2 mb-2">
-                    <small class="text-muted">Нет хештегов</small>
+                <div class="hashtags mt-2 mb-3">
+                    <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Нет хештегов</small>
                 </div>
                 {% endif %}
 
                 <div class="mt-auto">
-                    <a href="{% url 'recipes:recipe-detail' recipe.pk %}" class="btn btn-outline-success btn-sm">Подробнее</a>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'recipes:add-to-favorites' recipe.pk %}" class="btn btn-outline-primary btn-sm">В избранное</a>
-                    {% endif %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'recipes:recipe-detail' recipe.pk %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-eye me-1"></i>Подробнее
+                        </a>
+                        {% if user.is_authenticated %}
+                            {% if recipe.is_favorite %}
+                                <a href="{% url 'recipes:remove-from-favorites' recipe.pk %}" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-heart me-1"></i>В избранном
+                                </a>
+                            {% else %}
+                                <a href="{% url 'recipes:add-to-favorites' recipe.pk %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-heart me-1"></i>В избранное
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-            <div class="card-footer">
-                <small class="text-muted">Автор: {{ recipe.author.username }}</small>
+            <div class="card-footer bg-transparent">
+                <small class="text-muted">
+                    <i class="fas fa-user me-1"></i>Автор: {{ recipe.author.username }}
+                </small>
             </div>
         </div>
     </div>
@@ -122,11 +206,13 @@
 
 <!-- Пагинация -->
 {% if is_paginated %}
-<nav aria-label="Page navigation">
+<nav aria-label="Page navigation" class="mt-5">
     <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Предыдущая</a>
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    <i class="fas fa-chevron-left me-1"></i>Предыдущая
+                </a>
             </li>
         {% endif %}
 
@@ -144,7 +230,9 @@
 
         {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Следующая</a>
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Следующая<i class="fas fa-chevron-right ms-1"></i>
+                </a>
             </li>
         {% endif %}
     </ul>
@@ -153,71 +241,61 @@
 
 <!-- Сообщение при отсутствии рецепта -->
 {% else %}
-<div class="alert alert-info">
-    <h4>Рецептов пока нет</h4>
-    <p>Будьте первым, кто добавит рецепт!</p>
+<div class="alert alert-info text-center py-5">
+    <i class="fas fa-search fa-4x text-muted mb-3"></i>
+    <h4><i class="fas fa-info-circle me-2"></i>Рецептов не найдено</h4>
+    <p class="mb-4">Попробуйте изменить критерии поиска или сбросить фильтры</p>
     {% if user.is_authenticated %}
-        <a href="{% url 'recipes:recipe-create' %}" class="btn btn-success">Добавить первый рецепт</a>
+        <a href="{% url 'recipes:recipe-create' %}" class="btn btn-success">
+            <i class="fas fa-plus-circle me-2"></i>Добавить первый рецепт
+        </a>
     {% else %}
-        <a href="{% url 'login' %}" class="btn btn-success">Войти и добавить рецепт</a>
+        <a href="{% url 'login' %}" class="btn btn-success">
+            <i class="fas fa-sign-in-alt me-2"></i>Войти и добавить рецепт
+        </a>
     {% endif %}
 </div>
 {% endif %}
 
 <style>
-.hashtags-checkboxes {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.hashtags-checkboxes .form-check {
-    margin-bottom: 0.5rem;
-    padding: 0.25rem 0;
-}
-
-.hashtags-checkboxes .form-check-input:checked {
-    background-color: #28a745;
-    border-color: #28a745;
-}
-
-.hashtags-checkboxes .form-check-label {
-    cursor: pointer;
-    font-size: 0.9rem;
-}
-
-/* Стили для скроллбара */
-.hashtags-checkboxes::-webkit-scrollbar {
-    width: 6px;
-}
-
-.hashtags-checkboxes::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-}
-
-.hashtags-checkboxes::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-}
-
-.hashtags-checkboxes::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-/* Улучшаем внешний вид карточек */
 .recipe-card {
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
 }
 
 .recipe-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15) !important;
 }
-</style>
 
-<!-- Стили для хештегов -->
+.recipe-image {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
 
-<style>
+.recipe-card:hover .recipe-image {
+    transform: scale(1.05);
+}
+
+.recipe-image-placeholder {
+    height: 200px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.favorite-badge {
+    font-size: 0.8rem;
+    padding: 0.5em 0.7em;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.meta-item {
+    padding: 0.25rem 0;
+}
+
 .hashtags-checkboxes {
     max-height: 300px;
     overflow-y: auto;
@@ -234,37 +312,14 @@
     background-color: #f8f9fa;
 }
 
-/* Стиль для выбранных хештегов */
-.hashtags-checkboxes .form-check-input:checked + .form-check-label {
-    font-weight: 600;
-    color: #198754; /* Зеленый цвет текста */
-}
-
-.hashtags-checkboxes .form-check-input:checked ~ .form-check-label::before {
-    content: " ✓ ";
-    font-weight: bold;
-}
-
-/* Альтернативный вариант: подсветка всего блока */
-.hashtags-checkboxes .form-check-input:checked ~ .form-check-label {
-    position: relative;
-}
-
-.hashtags-checkboxes .form-check-input:checked ~ .form-check-label::after {
-    content: "";
-    position: absolute;
-    left: -10px;
-    right: -10px;
-    top: -5px;
-    bottom: -5px;
-    background-color: #d1fae5; /* Светло-зеленый фон */
-    border-radius: 6px;
-    z-index: -1;
-}
-
 .hashtags-checkboxes .form-check-input:checked {
     background-color: #198754;
     border-color: #198754;
+}
+
+.hashtags-checkboxes .form-check-input:checked + .form-check-label {
+    font-weight: 600;
+    color: #198754;
 }
 
 /* Стили для скроллбара */
@@ -286,17 +341,87 @@
     background: #a8a8a8;
 }
 
-.recipe-card {
-    transition: transform 0.2s, box-shadow 0.2s;
+.form-floating > label {
+    padding-left: 2.5rem;
 }
 
-.recipe-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+.form-floating > .form-control {
+    padding-left: 2.5rem;
+}
+
+.form-floating .fas {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    color: #6c757d;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #198754 0%, #157347 100%);
+    border: none;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-outline-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border-color: #0d6efd;
+}
+
+.alert-info {
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+}
+
+.card-footer {
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+@media (max-width: 768px) {
+    .recipe-meta .meta-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .hashtags .badge {
+        font-size: 0.7rem;
+    }
+
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
 }
 </style>
 
-<!-- Скрипт для хештегов -->
+<!-- Добавление Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -308,25 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Добавляем обработчики для плавного изменения стилей при выборе
-    const checkboxes = document.querySelectorAll('.hashtags-checkboxes .form-check-input');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const formCheck = this.closest('.form-check');
-            if (this.checked) {
-                formCheck.style.backgroundColor = '#f0fdf4'; // Очень светлый зеленый
-                formCheck.style.borderColor = '#bbf7d0';
-            } else {
-                formCheck.style.backgroundColor = '';
-                formCheck.style.borderColor = '';
-            }
-
-            // Обновляем счетчик выбранных хештегов
-            updateHashtagsCounter();
-        });
-    });
-
-    // Функция для обновления счетчика в кнопке dropdown
+    // Обновление счетчика выбранных хештегов
     function updateHashtagsCounter() {
         const selectedCount = document.querySelectorAll('.hashtags-checkboxes .form-check-input:checked').length;
         const dropdownButton = document.querySelector('[data-bs-toggle="dropdown"]');
@@ -344,21 +451,129 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Инициализация счетчика
+    updateHashtagsCounter();
+
+    // Обработчики для чекбоксов
+    const checkboxes = document.querySelectorAll('.hashtags-checkboxes .form-check-input');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateHashtagsCounter();
+        });
+    });
+
+    // Добавляем иконки к полям форм
+    const searchInput = document.getElementById('searchInput');
+    const caloriesInput = document.getElementById('caloriesInput');
+
+    if (searchInput) {
+        const searchIcon = document.createElement('i');
+        searchIcon.className = 'fas fa-search';
+        searchIcon.style.position = 'absolute';
+        searchIcon.style.left = '1rem';
+        searchIcon.style.top = '50%';
+        searchIcon.style.transform = 'translateY(-50%)';
+        searchIcon.style.color = '#6c757d';
+        searchIcon.style.zIndex = '5';
+
+        searchInput.parentNode.style.position = 'relative';
+        searchInput.parentNode.appendChild(searchIcon);
+    }
+
+    if (caloriesInput) {
+        const fireIcon = document.createElement('i');
+        fireIcon.className = 'fas fa-fire';
+        fireIcon.style.position = 'absolute';
+        fireIcon.style.left = '1rem';
+        fireIcon.style.top = '50%';
+        fireIcon.style.transform = 'translateY(-50%)';
+        fireIcon.style.color = '#6c757d';
+        fireIcon.style.zIndex = '5';
+
+        caloriesInput.parentNode.style.position = 'relative';
+        caloriesInput.parentNode.appendChild(fireIcon);
+    }
+
+    // Обработка кликов по кнопкам избранного для мгновенной обратной связи
+    const favoriteButtons = document.querySelectorAll('a[href*="favorites"]');
+    favoriteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const button = this;
+            const originalText = button.innerHTML;
+
+            // Показываем индикатор загрузки
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Загрузка...';
+            button.disabled = true;
+
+            // Восстанавливаем кнопку через 2 секунды на случай ошибки
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 2000);
+        });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновление счетчика выбранных хештегов
+    function updateHashtagsCounter() {
+        const selectedCount = document.querySelectorAll('.hashtags-checkboxes .form-check-input:checked').length;
+        const dropdownButton = document.querySelector('[data-bs-toggle="dropdown"]');
+        const counterElement = document.getElementById('selected-count');
+
+        let badge = dropdownButton.querySelector('.badge');
+        if (selectedCount > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'badge bg-primary ms-1';
+                dropdownButton.appendChild(badge);
+            }
+            badge.textContent = selectedCount;
+        } else if (badge) {
+            badge.remove();
+        }
+
+        if (counterElement) {
+            counterElement.textContent = selectedCount;
+        }
+    }
+
     // Инициализация счетчика при загрузке
     updateHashtagsCounter();
-});
-</script>
 
-<script>
-// JavaScript для предотвращения закрытия dropdown при клике внутри
-document.addEventListener('DOMContentLoaded', function() {
+    // Обработчики для чекбоксов
+    const checkboxes = document.querySelectorAll('.hashtags-checkboxes .form-check-input');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateHashtagsCounter);
+    });
+
+    // Предотвращение закрытия dropdown при клике внутри
     const dropdownMenu = document.querySelector('.dropdown-menu');
-    
     if (dropdownMenu) {
         dropdownMenu.addEventListener('click', function(e) {
             e.stopPropagation();
         });
     }
+
+    // Обработка кликов по кнопкам избранного для мгновенной обратной связи
+    const favoriteButtons = document.querySelectorAll('a[href*="favorites"]');
+    favoriteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const button = this;
+            const originalText = button.innerHTML;
+
+            // Показываем индикатор загрузки
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Загрузка...';
+            button.disabled = true;
+
+            // Восстанавливаем кнопку через 2 секунды на случай ошибки
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 2000);
+        });
+    });
 });
+
 </script>
 {% endblock %}

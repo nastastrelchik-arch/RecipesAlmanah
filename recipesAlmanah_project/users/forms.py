@@ -55,8 +55,11 @@ class UserUpdateForm(forms.ModelForm):
 
 #Класс, отвечающий за поля формы профиля пользователя
 class ProfileUpdateForm(forms.ModelForm):
+    profile_photo = forms.ImageField(required=False, label='Фото профиля')
+    show_favorites = forms.BooleanField(required=False, initial=True, label='Показывать избранные рецепты')
+    bio = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 4}), label='О себе')
+    location = forms.CharField(required=False, max_length=30, label='Местоположение')
+
     class Meta:
-        #Связь с моделью Профиль
-        model = Profile
-        #Перечень полей на форме
-        fields = ['bio', 'location', 'birth_date', 'profile_photo', 'show_favorites']
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'profile_photo', 'show_favorites', 'bio', 'location']

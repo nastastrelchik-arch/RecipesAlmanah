@@ -1,108 +1,420 @@
+/* ===== СТИЛИ ДЛЯ ХЕШТЕГОВ ===== */
+
 /* Основные стили для контейнера хештегов */
 .hashtags-checkboxes {
     max-height: 300px;
     overflow-y: auto;
     margin-bottom: 1rem;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .hashtags-checkboxes .form-check {
     margin-bottom: 0.5rem;
-    padding: 0.25rem 0;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
 }
 
 .hashtags-checkboxes .form-check:hover {
-    background-color: #f8f9fa;
+    background: linear-gradient(135deg, #B2E2D0 0%, #A8D5BA 100%);
+    transform: translateY(-2px);
+    border-color: #4CAF50;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
 }
 
 /* Стили для выбранных хештегов */
 .hashtags-checkboxes .form-check-input:checked {
-    background-color: #198754;
-    border-color: #198754;
+    background-color: #2E8B57;
+    border-color: #2E8B57;
+    box-shadow: 0 0 0 2px rgba(46, 139, 87, 0.2);
 }
 
 .hashtags-checkboxes .form-check-input:checked + .form-check-label {
-    font-weight: 600;
-    color: #198754;
-}
-
-.hashtags-checkboxes .form-check-input:checked ~ .form-check-label::before {
-    content: " ✓ ";
-    font-weight: bold;
-}
-
-.hashtags-checkboxes .form-check-input:checked ~ .form-check-label {
-    position: relative;
-}
-
-.hashtags-checkboxes .form-check-input:checked ~ .form-check-label::after {
-    content: "";
-    position: absolute;
-    left: -10px;
-    right: -10px;
-    top: -5px;
-    bottom: -5px;
-    background-color: #d1fae5;
-    border-radius: 6px;
-    z-index: -1;
+    font-weight: 700;
+    color: #2E8B57;
 }
 
 .hashtags-checkboxes .form-check-label {
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    color: #333333;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    margin-left: 0.5rem;
+}
+
+/* Подсветка всего блока при выборе */
+.hashtags-checkboxes .form-check-input:checked ~ .form-check {
+    background: linear-gradient(135deg, #e8f5e8 0%, #f0f9f0 100%);
+    border-color: #2E8B57;
 }
 
 /* Стили для скроллбара */
 .hashtags-checkboxes::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .hashtags-checkboxes::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
+    background: #f8f9fa;
+    border-radius: 10px;
 }
 
 .hashtags-checkboxes::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
+    background: linear-gradient(135deg, #4CAF50 0%, #2E8B57 100%);
+    border-radius: 10px;
+    border: 2px solid #f8f9fa;
 }
 
 .hashtags-checkboxes::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: linear-gradient(135deg, #2E8B57 0%, #1a5334 100%);
 }
 
-/* Стили для карточек рецептов */
+/* Улучшенный выпадающий список */
+.hashtags-dropdown .dropdown-menu {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    padding: 0;
+    overflow: hidden;
+    min-width: 320px;
+}
+
+.hashtags-dropdown .dropdown-header {
+    background: linear-gradient(135deg, #2E8B57 0%, #1a5334 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    border-bottom: none;
+}
+
+.hashtags-dropdown .dropdown-footer {
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hashtags-dropdown .btn-sm {
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+/* ===== СТИЛИ ДЛЯ КАРТОЧЕК РЕЦЕПТОВ ===== */
+
 .recipe-card {
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     height: 100%;
+    position: relative;
+    border-radius: 16px;
+    overflow: visible !important;
+    z-index: 1;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
 
 .recipe-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 12px 40px rgba(46, 139, 87, 0.2);
+    transform: translateY(-8px);
+    border-color: #B2E2D0;
 }
 
-/* Стили для форм */
-.ingredient-form,
-.cooking-step-form {
-    border-left: 4px solid #28a745;
+/* Контейнер для изображения */
+.recipe-image-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px 16px 0 0;
+    z-index: 1;
 }
 
-/* Скрытые формы */
-.ingredient-form[style*="display: none"],
-.cooking-step-form[style*="display: none"] {
-    display: none !important;
+/* Стили для изображений - улучшенная анимация */
+.recipe-card img {
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: center center;
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    display: block;
+    position: relative;
+    filter: brightness(0.95);
+}
+
+.recipe-card:hover img {
+    transform: scale(1.15);
+    z-index: 20;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    margin: -5% -5% 0 -5%;
+    padding: 5% 5% 0 5%;
+    filter: brightness(1.05);
+    border-radius: 12px;
+}
+
+/* Контент карточки */
+.recipe-card .card-body {
+    position: relative;
+    z-index: 2;
+    background: #ffffff;
+    border-radius: 0 0 16px 16px;
+    margin-top: 0;
+    padding: 1.5rem;
+}
+
+.recipe-card .card-title {
+    color: #2E8B57;
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.recipe-card .card-text {
+    color: #666;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* Бейджи и метки */
+.favorite-badge {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
 /* Стили для выбранных хештегов */
-#selected-hashtags .badge {
+.selected-hashtags-container .badge {
     font-size: 0.85em;
-    padding: 0.5em 0.75em;
+    padding: 0.6em 1em;
+    background: linear-gradient(135deg, #2E8B57 0%, #1a5334 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    margin: 0.25rem;
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
+    transition: all 0.3s ease;
 }
 
-/* Стили для селекта хештегов */
-#hashtag-select {
-    height: auto;
-    min-height: 100px;
+.selected-hashtags-container .badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(46, 139, 87, 0.4);
+}
+
+/* ===== ОБЩИЕ СТИЛИ ===== */
+
+/* Анимация появления элементов */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.recipe-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Улучшенные кнопки */
+.btn-success {
+    background: linear-gradient(135deg, #198754 0%, #157347 100%);
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(25, 135, 84, 0.4);
+    background: linear-gradient(135deg, #157347 0%, #0d462f 100%);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+}
+
+.btn-outline-primary {
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+/* Ховер-эффект для всей карточки */
+.recipe-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(168, 213, 186, 0.1) 0%, rgba(178, 226, 208, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.recipe-card:hover::before {
+    opacity: 1;
+}
+
+/* Медиа-запрос для мобильных устройств */
+@media (max-width: 768px) {
+    .recipe-card:hover img {
+        transform: scale(1.08);
+        margin: -3% -3% 0 -3%;
+        padding: 3% 3% 0 3%;
+    }
+
+    .recipe-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .hashtags-checkboxes {
+        padding: 0.75rem;
+    }
+
+    .recipe-card .card-body {
+        padding: 1.25rem;
+    }
+
+    .hashtags-dropdown .dropdown-menu {
+        min-width: 280px;
+        margin-left: -100px;
+    }
+
+    .selected-hashtags-container .badge {
+        font-size: 0.75em;
+        padding: 0.5em 0.8em;
+        margin: 0.15rem;
+    }
+}
+
+/* Улучшенная сетка */
+.recipes-grid {
+    gap: 2rem;
+}
+
+/* Стили для мета-информации рецепта */
+.recipe-meta .meta-item {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.recipe-meta .meta-item:last-child {
+    border-bottom: none;
+}
+
+/* Стили для placeholder изображения */
+.recipe-image-placeholder {
+    height: 240px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+}
+
+/* Стили для активных фильтров */
+.selected-hashtags-container {
+    background: linear-gradient(135deg, #f8fff8 0%, #f0f9f0 100%);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid #d4edda;
+    margin-top: 1rem;
+}
+
+.selected-hashtags-container strong {
+    color: #2E8B57;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/* Стили для кнопок в карточках */
+.recipe-card .btn-sm {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.recipe-card .btn-outline-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
+}
+
+/* Дополнительные стили для улучшения UX */
+.form-floating > .form-control {
+    border-radius: 10px;
+}
+
+.form-floating > label {
+    color: #6c757d;
+}
+
+.hashtags-dropdown .btn-outline-success {
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.hashtags-dropdown .btn-outline-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
+
+/* Анимация для счетчика хештегов */
+@keyframes bounce {
+    0%, 20%, 53%, 80%, 100% {
+        transform: translate3d(0,0,0);
+    }
+    40%, 43% {
+        transform: translate3d(0, -8px, 0);
+    }
+    70% {
+        transform: translate3d(0, -4px, 0);
+    }
+    90% {
+        transform: translate3d(0, -2px, 0);
+    }
+}
+
+.hashtags-dropdown .badge {
+    animation: bounce 0.5s ease;
+}
+
+/* Стили для пустого состояния */
+.text-muted i {
+    opacity: 0.6;
 }
