@@ -318,17 +318,21 @@ def search_recipes(request):
     max_calories = request.GET.get('max_calories', '')
     selected_hashtags = request.GET.getlist('hashtags', [])
 
+    # Убираем аннотацию favorite_count, т.к. это property в модели
     recipes = Recipe.objects.all().prefetch_related('hashtags')
-    recipes = recipes.annotate(favorite_count=Count('favorite'))
 
     # Добавляем аннотацию для проверки избранного
     if request.user.is_authenticated:
+        favorite_recipe_ids = Favorite.objects.filter(
+            user=request.user
+        ).values_list('recipe_id', flat=True)
+
+        from django.db.models import Case, When, BooleanField
         recipes = recipes.annotate(
-            is_favorite=Exists(
-                Favorite.objects.filter(
-                    recipe=OuterRef('pk'),
-                    user=request.user
-                )
+            is_favorite=Case(
+                When(id__in=list(favorite_recipe_ids), then=True),
+                default=False,
+                output_field=BooleanField()
             )
         )
     else:
@@ -351,20 +355,12 @@ def search_recipes(request):
     if max_calories:
         recipes = recipes.filter(calories_per_100g__lte=max_calories)
 
-    # Передаем список ID избранных рецептов
-    favorite_recipe_ids = []
-    if request.user.is_authenticated:
-        favorite_recipe_ids = Favorite.objects.filter(
-            user=request.user
-        ).values_list('recipe_id', flat=True)
-
     context = {
         'recipes': recipes,
         'query': query,
         'max_calories': max_calories,
         'selected_hashtags': selected_hashtags,
         'all_hashtags': Hashtag.objects.all().order_by('name'),
-        'favorite_recipe_ids': list(favorite_recipe_ids),
     }
     return render(request, 'recipes/search_results.html', context)
 
