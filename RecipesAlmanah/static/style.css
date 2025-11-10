@@ -1,0 +1,108 @@
+/* Основные стили для контейнера хештегов */
+.hashtags-checkboxes {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+.hashtags-checkboxes .form-check {
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.hashtags-checkboxes .form-check:hover {
+    background-color: #f8f9fa;
+}
+
+/* Стили для выбранных хештегов */
+.hashtags-checkboxes .form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.hashtags-checkboxes .form-check-input:checked + .form-check-label {
+    font-weight: 600;
+    color: #198754;
+}
+
+.hashtags-checkboxes .form-check-input:checked ~ .form-check-label::before {
+    content: " ✓ ";
+    font-weight: bold;
+}
+
+.hashtags-checkboxes .form-check-input:checked ~ .form-check-label {
+    position: relative;
+}
+
+.hashtags-checkboxes .form-check-input:checked ~ .form-check-label::after {
+    content: "";
+    position: absolute;
+    left: -10px;
+    right: -10px;
+    top: -5px;
+    bottom: -5px;
+    background-color: #d1fae5;
+    border-radius: 6px;
+    z-index: -1;
+}
+
+.hashtags-checkboxes .form-check-label {
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* Стили для скроллбара */
+.hashtags-checkboxes::-webkit-scrollbar {
+    width: 6px;
+}
+
+.hashtags-checkboxes::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.hashtags-checkboxes::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.hashtags-checkboxes::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Стили для карточек рецептов */
+.recipe-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Стили для форм */
+.ingredient-form,
+.cooking-step-form {
+    border-left: 4px solid #28a745;
+}
+
+/* Скрытые формы */
+.ingredient-form[style*="display: none"],
+.cooking-step-form[style*="display: none"] {
+    display: none !important;
+}
+
+/* Стили для выбранных хештегов */
+#selected-hashtags .badge {
+    font-size: 0.85em;
+    padding: 0.5em 0.75em;
+}
+
+/* Стили для селекта хештегов */
+#hashtag-select {
+    height: auto;
+    min-height: 100px;
+}

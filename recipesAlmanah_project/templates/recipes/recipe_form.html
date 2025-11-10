@@ -203,7 +203,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Управление хештегами
+    // Управление хештегами (оставляем без изменений)
     const hashtagSelect = document.getElementById('hashtag-select');
     const newHashtagInput = document.getElementById('new-hashtag');
     const addHashtagBtn = document.getElementById('add-hashtag-btn');
@@ -332,6 +332,46 @@ document.addEventListener('DOMContentLoaded', function() {
         return parseInt(totalFormsInput.value);
     }
 
+    // Функция для пометки формы на удаление и отключения валидации
+// Функция для пометки формы на удаление и отключения валидации
+function markFormForDeletion(form, prefix) {
+    const idInput = form.querySelector('input[name$="-id"]');
+
+    if (idInput && idInput.value) {
+        // Для существующих объектов: создаем поле DELETE
+        const deleteInputName = idInput.name.replace('-id', '-DELETE');
+        let deleteInput = form.querySelector(`input[name="${deleteInputName}"]`);
+
+        if (!deleteInput) {
+            deleteInput = document.createElement('input');
+            deleteInput.type = 'hidden';
+            deleteInput.name = deleteInputName;
+            deleteInput.value = 'on';
+            form.appendChild(deleteInput);
+        }
+
+        // Отключаем обязательные поля для удаляемой формы
+        form.querySelectorAll('input[required], textarea[required], select[required]').forEach(field => {
+            field.removeAttribute('required');
+            field.setAttribute('data-was-required', 'true');
+        });
+
+        // Делаем поля необязательными для валидации Django
+        form.querySelectorAll('input, textarea, select').forEach(field => {
+            if (field.name) {
+                // Добавляем класс или атрибут для идентификации невалидируемых полей
+                field.classList.add('ignored-for-validation');
+            }
+        });
+
+        // Скрываем форму вместо удаления
+        form.style.display = 'none';
+    } else {
+        // Для новых объектов: просто удаляем форму
+        form.remove();
+    }
+}
+
     // Добавление ингредиентов
     document.getElementById('add-ingredient').addEventListener('click', function() {
         const formset = document.getElementById('ingredient-formset');
@@ -411,8 +451,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const form = e.target.closest('.ingredient-form');
             const formset = document.getElementById('ingredient-formset');
 
-            // Просто удаляем форму, так как это новая (не сохраненная в БД)
-            form.remove();
+            // Помечаем форму на удаление
+            markFormForDeletion(form, 'ingredients');
 
             // Обновляем индексы
             updateFormIndices(formset, 'ingredients');
@@ -422,8 +462,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const form = e.target.closest('.cooking-step-form');
             const formset = document.getElementById('cooking-step-formset');
 
-            // Просто удаляем форму, так как это новая (не сохраненная в БД)
-            form.remove();
+            // Помечаем форму на удаление
+            markFormForDeletion(form, 'cooking_steps');
 
             // Обновляем индексы
             updateFormIndices(formset, 'cooking_steps');
