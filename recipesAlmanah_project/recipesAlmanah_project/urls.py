@@ -9,6 +9,7 @@ urlpatterns = [
     path('', include('recipes.urls')),
     path('users/', include('users.urls')),
     path('comments/', include('comments.urls')),
+    path('others/', include('others.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

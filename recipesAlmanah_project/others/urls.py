@@ -1,0 +1,18 @@
+from django.urls import path
+from . import views
+
+app_name = 'others'
+
+urlpatterns = [
+    # Статьи
+    path('articles/', views.articles_list, name='articles-list'),
+    path('articles/<int:pk>/', views.article_detail, name='article-detail'),
+    path('articles/create/', views.create_article, name='create-article'),
+    path('articles/<int:pk>/edit/', views.edit_article, name='edit-article'),
+
+    # Рекомендации
+    path('recommendations/', views.recommendations_list, name='recommendations-list'),
+
+    # Статистика (только для staff)
+    path('statistics/', views.statistics_view, name='statistics'),
+]

@@ -1,39 +1,72 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{% if form.instance.pk %}Редактирование рецепта{% else %}Добавление рецепта{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-10">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0"> {% if form.instance.pk %}
-                    Редактирование рецепта: {{ form.instance.title }}
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white py-3">
+                <h4 class="mb-0">
+                    <i class="fas fa-utensils me-2"></i>
+                    {% if form.instance.pk %}
+                        Редактирование рецепта: {{ form.instance.title }}
                     {% else %}
-                    Добавление нового рецепта
-                    {% endif %}</h4>
+                        Добавление нового рецепта
+                    {% endif %}
+                </h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form method="post" enctype="multipart/form-data" id="recipe-form">
                     {% csrf_token %}
 
-                    <h5 class="mb-3">Основная информация</h5>
+                    <!-- Основная информация -->
+                    <div class="section-header mb-4">
+                        <h5 class="text-primary">
+                            <i class="fas fa-info-circle me-2"></i>Основная информация
+                        </h5>
+                    </div>
+
                     {% for field in form %}
-                        {% if field.name != 'hashtags' %} <!-- Исключаем поле hashtags из общего цикла -->
-                        <div class="mb-3">
-                            <label for="{{ field.id_for_label }}" class="form-label">
+                        {% if field.name != 'hashtags' %}
+                        <div class="mb-4">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                                {% if field.name == 'title' %}
+                                    <i class="fas fa-heading me-1"></i>
+                                {% elif field.name == 'description' %}
+                                    <i class="fas fa-align-left me-1"></i>
+                                {% elif field.name == 'cooking_time' %}
+                                    <i class="fas fa-clock me-1"></i>
+                                {% elif field.name == 'servings' %}
+                                    <i class="fas fa-utensils me-1"></i>
+                                {% elif field.name == 'calories_per_100g' %}
+                                    <i class="fas fa-fire me-1"></i>
+                                {% elif field.name == 'difficulty' %}
+                                    <i class="fas fa-star me-1"></i>
+                                {% elif field.name == 'main_photo' %}
+                                    <i class="fas fa-camera me-1"></i>
+                                {% elif field.name == 'video' %}
+                                    <i class="fas fa-video me-1"></i>
+                                {% endif %}
                                 {{ field.label }}
                                 {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
                             </label>
                             {{ field }}
 
                             {% if field.help_text %}
-                            <div class="form-text">{{ field.help_text }}</div>
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>{{ field.help_text }}
+                            </div>
                             {% endif %}
 
                             {% if field.errors %}
-                            <div class="alert alert-danger mt-1">
-                                {{ field.errors }}
+                            <div class="alert alert-danger mt-2 p-2">
+                                <i class="fas fa-exclamation-triangle me-1"></i>{{ field.errors }}
                             </div>
                             {% endif %}
                         </div>
@@ -43,49 +76,64 @@
                     <hr class="my-4">
 
                     <!-- Хештеги -->
-                    <h5 class="mb-3">Хештеги</h5>
+                    <div class="section-header mb-4">
+                        <h5 class="text-primary">
+                            <i class="fas fa-tags me-2"></i>Хештеги
+                        </h5>
+                    </div>
+
                     <div class="mb-4">
-                        <div class="row">
+                        <div class="row g-3">
                             <div class="col-md-8">
-                                <label class="form-label">Выберите существующие хештеги или добавьте новые</label>
-                                <select class="form-select" id="hashtag-select" multiple>
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-list me-1"></i>Выберите существующие хештеги
+                                </label>
+                                <select class="form-select" id="hashtag-select" multiple style="height: 120px;">
                                     {% for hashtag in existing_hashtags %}
                                     <option value="{{ hashtag.name }}">{{ hashtag.name }}</option>
                                     {% endfor %}
                                 </select>
+                                <div class="form-text text-muted">
+                                    <i class="fas fa-mouse-pointer me-1"></i>Удерживайте Ctrl для выбора нескольких хештегов
+                                </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Добавить новый хештег</label>
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-plus-circle me-1"></i>Добавить новый хештег
+                                </label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="new-hashtag" placeholder="#новый_хештег">
-                                    <button type="button" class="btn btn-outline-success" id="add-hashtag-btn">Добавить</button>
+                                    <span class="input-group-text">#</span>
+                                    <input type="text" class="form-control" id="new-hashtag" placeholder="новый_хештег">
+                                    <button type="button" class="btn btn-success" id="add-hashtag-btn">
+                                        <i class="fas fa-plus me-1"></i>Добавить
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Выбранные хештеги -->
-                        <div class="mt-3">
-                            <label class="form-label">Выбранные хештеги:</label>
-                            <div id="selected-hashtags" class="d-flex flex-wrap gap-2 p-2 bg-light rounded">
+                        <div class="mt-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-check-circle me-1 text-success"></i>Выбранные хештеги:
+                            </label>
+                            <div id="selected-hashtags" class="d-flex flex-wrap gap-2 p-3 bg-light rounded border">
                                 <!-- Здесь будут отображаться выбранные хештеги -->
                             </div>
                         </div>
 
                         <!-- Скрытое поле для хештегов -->
-                        <div class="mb-3">
-                            <label for="{{ form.hashtags.id_for_label }}" class="form-label">
-                                {{ form.hashtags.label }}
-                                {% if form.hashtags.field.required %}<span class="text-danger">*</span>{% endif %}
-                            </label>
+                        <div class="mt-3">
                             {{ form.hashtags }}
 
                             {% if form.hashtags.help_text %}
-                            <div class="form-text">{{ form.hashtags.help_text }}</div>
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>{{ form.hashtags.help_text }}
+                            </div>
                             {% endif %}
 
                             {% if form.hashtags.errors %}
-                            <div class="alert alert-danger mt-1">
-                                {{ form.hashtags.errors }}
+                            <div class="alert alert-danger mt-2 p-2">
+                                <i class="fas fa-exclamation-triangle me-1"></i>{{ form.hashtags.errors }}
                             </div>
                             {% endif %}
                         </div>
@@ -93,34 +141,45 @@
 
                     <hr class="my-4">
 
-                    <h5 class="mb-3">Ингредиенты</h5>
+                    <!-- Ингредиенты -->
+                    <div class="section-header mb-4">
+                        <h5 class="text-primary">
+                            <i class="fas fa-list-ul me-2"></i>Ингредиенты
+                        </h5>
+                    </div>
+
                     <div id="ingredient-formset">
                         {{ ingredient_formset.management_form }}
                         {% for form in ingredient_formset %}
-                        <div class="card mb-3 ingredient-form">
+                        <div class="card mb-3 ingredient-form border-0 shadow-sm">
                             <div class="card-body">
-                                <div class="row">
+                                <div class="row g-3 align-items-end">
                                     <div class="col-md-6">
-                                        <label class="form-label">Название ингредиента</label>
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-carrot me-1 text-success"></i>Название ингредиента
+                                        </label>
                                         {{ form.name }}
                                         {% if form.name.errors %}
-                                        <div class="alert alert-danger mt-1">
-                                            {{ form.name.errors }}
+                                        <div class="alert alert-danger mt-1 p-2">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.name.errors }}
                                         </div>
                                         {% endif %}
                                     </div>
                                     <div class="col-md-5">
-                                        <label class="form-label">Количество</label>
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-balance-scale me-1 text-warning"></i>Количество
+                                        </label>
                                         {{ form.quantity }}
                                         {% if form.quantity.errors %}
-                                        <div class="alert alert-danger mt-1">
-                                            {{ form.quantity.errors }}
+                                        <div class="alert alert-danger mt-1 p-2">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.quantity.errors }}
                                         </div>
                                         {% endif %}
                                     </div>
                                     <div class="col-md-1">
-                                        <label class="form-label">&nbsp;</label>
-                                        <button type="button" class="btn btn-sm btn-danger remove-ingredient">Удалить</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-ingredient w-100">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 {{ form.id }}
@@ -132,49 +191,64 @@
                         {% endfor %}
                     </div>
                     <button type="button" class="btn btn-outline-success btn-sm mb-4" id="add-ingredient">
-                        + Добавить еще ингредиент
+                        <i class="fas fa-plus-circle me-1"></i>Добавить еще ингредиент
                     </button>
 
                     <hr class="my-4">
 
-                    <h5 class="mb-3">Шаги приготовления</h5>
+                    <!-- Шаги приготовления -->
+                    <div class="section-header mb-4">
+                        <h5 class="text-primary">
+                            <i class="fas fa-list-ol me-2"></i>Шаги приготовления
+                        </h5>
+                    </div>
+
                     <div id="cooking-step-formset">
                         {{ cooking_step_formset.management_form }}
                         {% for form in cooking_step_formset %}
-                        <div class="card mb-3 cooking-step-form">
+                        <div class="card mb-3 cooking-step-form border-0 shadow-sm">
                             <div class="card-body">
-                                <div class="row">
+                                <div class="row g-3">
                                     <div class="col-md-2">
-                                        <label class="form-label">Шаг №</label>
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-hashtag me-1 text-info"></i>Шаг №
+                                        </label>
                                         {{ form.step_number }}
                                         {% if form.step_number.errors %}
-                                        <div class="alert alert-danger mt-1">
-                                            {{ form.step_number.errors }}
+                                        <div class="alert alert-danger mt-1 p-2">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.step_number.errors }}
                                         </div>
                                         {% endif %}
                                     </div>
                                     <div class="col-md-7">
-                                        <label class="form-label">Описание</label>
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-align-left me-1 text-primary"></i>Описание
+                                        </label>
                                         {{ form.description }}
                                         {% if form.description.errors %}
-                                        <div class="alert alert-danger mt-1">
-                                            {{ form.description.errors }}
+                                        <div class="alert alert-danger mt-1 p-2">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.description.errors }}
                                         </div>
                                         {% endif %}
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Фото шага (необязательно)</label>
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-camera me-1 text-secondary"></i>Фото шага
+                                            <small class="text-muted">(необязательно)</small>
+                                        </label>
                                         {{ form.photo }}
                                         {% if form.photo.errors %}
-                                        <div class="alert alert-danger mt-1">
-                                            {{ form.photo.errors }}
+                                        <div class="alert alert-danger mt-1 p-2">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ form.photo.errors }}
                                         </div>
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="row mt-2">
+                                <div class="row mt-3">
                                     <div class="col-md-12">
-                                        <button type="button" class="btn btn-sm btn-danger remove-step">Удалить шаг</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-step">
+                                            <i class="fas fa-trash me-1"></i>Удалить шаг
+                                        </button>
                                     </div>
                                 </div>
                                 {{ form.id }}
@@ -186,13 +260,20 @@
                         {% endfor %}
                     </div>
                     <button type="button" class="btn btn-outline-success btn-sm mb-4" id="add-cooking-step">
-                        + Добавить еще шаг
+                        <i class="fas fa-plus-circle me-1"></i>Добавить еще шаг
                     </button>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a href="{% url 'recipes:home' %}" class="btn btn-secondary me-md-2">Отмена</a>
-                        <button type="submit" class="btn btn-success">
-                            {% if form.instance.pk %}Сохранить изменения{% else %}Добавить рецепт{% endif %}
+                    <!-- Кнопки отправки -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5 pt-3 border-top">
+                        <a href="{% url 'recipes:home' %}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-1"></i>Отмена
+                        </a>
+                        <button type="submit" class="btn btn-success px-4">
+                            {% if form.instance.pk %}
+                                <i class="fas fa-save me-1"></i>Сохранить изменения
+                            {% else %}
+                                <i class="fas fa-plus-circle me-1"></i>Добавить рецепт
+                            {% endif %}
                         </button>
                     </div>
                 </form>
@@ -201,9 +282,10 @@
     </div>
 </div>
 
+<!-- JavaScript остается без изменений -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Управление хештегами (оставляем без изменений)
+    // Управление хештегами
     const hashtagSelect = document.getElementById('hashtag-select');
     const newHashtagInput = document.getElementById('new-hashtag');
     const addHashtagBtn = document.getElementById('add-hashtag-btn');
@@ -214,7 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Загрузка ранее выбранных хештегов при редактировании
     function loadExistingHashtags() {
         {% if form.instance.pk %}
-            // Для существующего рецепта - загружаем хештеги из формы
             const existingHashtags = "{{ form.hashtags.value|default:''|escapejs }}".split(',').filter(tag => tag.trim() !== '');
             existingHashtags.forEach(tag => {
                 if (tag.trim()) {
@@ -222,7 +303,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         {% else %}
-            // Для нового рецепта - загружаем из initial значения, если есть
             const initialHashtags = "{{ form.hashtags.value|default:''|escapejs }}".split(',').filter(tag => tag.trim() !== '');
             initialHashtags.forEach(tag => {
                 if (tag.trim()) {
@@ -241,14 +321,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const hashtagElement = document.createElement('span');
         hashtagElement.className = 'badge bg-success d-flex align-items-center';
         hashtagElement.innerHTML = `
-            ${hashtag}
-            <button type="button" class="btn-close btn-close-white ms-2" data-hashtag="${hashtag}"></button>
+            <i class="fas fa-hashtag me-1"></i>${hashtag}
+            <button type="button" class="btn-close btn-close-white ms-2" data-hashtag="${hashtag}" aria-label="Удалить"></button>
         `;
 
         selectedHashtagsContainer.appendChild(hashtagElement);
         updateHashtagsInput();
 
-        // Добавляем обработчик удаления
         hashtagElement.querySelector('button').addEventListener('click', function() {
             const tagToRemove = this.getAttribute('data-hashtag');
             selectedHashtags.delete(tagToRemove);
@@ -274,14 +353,12 @@ document.addEventListener('DOMContentLoaded', function() {
     addHashtagBtn.addEventListener('click', function() {
         const newHashtag = newHashtagInput.value.trim();
         if (newHashtag) {
-            // Добавляем # если его нет
             const formattedHashtag = newHashtag.startsWith('#') ? newHashtag : `#${newHashtag}`;
             addHashtagToSelection(formattedHashtag);
             newHashtagInput.value = '';
         }
     });
 
-    // Добавление по Enter
     newHashtagInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -289,7 +366,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Загрузка существующих хештегов при редактировании
     loadExistingHashtags();
 
     // Функция для обновления индексов в форме
@@ -476,27 +552,4 @@ function markFormForDeletion(form, prefix) {
 });
 </script>
 
-<style>
-.ingredient-form, .cooking-step-form {
-    border-left: 4px solid #28a745;
-}
-
-/* Стили для выбранных хештегов */
-#selected-hashtags .badge {
-    font-size: 0.85em;
-    padding: 0.5em 0.75em;
-}
-
-/* Стили для селекта хештегов */
-#hashtag-select {
-    height: auto;
-    min-height: 100px;
-}
-
-/* Скрытые формы */
-.ingredient-form[style*="display: none"],
-.cooking-step-form[style*="display: none"] {
-    display: none !important;
-}
-</style>
 {% endblock %}

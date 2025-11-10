@@ -16,6 +16,16 @@ class RecipeForm(forms.ModelForm):
         model = Recipe
         fields = ['title', 'description', 'cooking_time', 'servings',
                  'calories_per_100g', 'difficulty', 'main_photo']
+        labels = {
+            'title': 'Название рецепта',
+            'description': 'Описание',
+            'cooking_time': 'Время приготовления',
+            'servings': 'Количество порций',
+            'calories_per_100g': 'Калории на 100г',
+            'difficulty': 'Сложность',
+            'main_photo': 'Главное фото',
+            'video': 'Видео',
+        }
         widgets = {
             'description': forms.Textarea(
                 attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Краткое описание рецепта...'}),

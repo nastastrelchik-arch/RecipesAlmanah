@@ -22,8 +22,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -65,6 +65,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\kursach\RecipesAlmanah\recipesAlmanah_project\comments" />
       <recent name="D:\University\kursach\RecipesAlmanah\recipesAlmanah_project\templates\recipes" />
     </key>
   </component>
@@ -123,7 +124,7 @@
       <workItem from="1760657489413" duration="15000" />
       <workItem from="1761313471278" duration="4719000" />
       <workItem from="1761497290468" duration="4363000" />
-      <workItem from="1762773964639" duration="11183000" />
+      <workItem from="1762773964639" duration="17922000" />
     </task>
     <servers />
   </component>

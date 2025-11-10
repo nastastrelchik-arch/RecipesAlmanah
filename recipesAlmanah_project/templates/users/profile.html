@@ -209,37 +209,63 @@
             </div>
 
             <!-- Комментарии -->
-            <div class="card shadow-sm border-0 mt-4">
-                <div class="card-header bg-light py-3">
-                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Мои комментарии ({{ user_comments.count }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if user_comments %}
-                    <div class="comments-list">
-                        {% for comment in user_comments %}
-                        <div class="comment-item border-bottom pb-3 mb-3">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <h6 class="mb-1">К рецепту: <a href="{% url 'recipes:recipe-detail' comment.recipe.pk %}" class="text-decoration-none">{{ comment.recipe.title }}</a></h6>
-                                <small class="text-muted">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Мои комментарии ({{ user_comments.count }})</h5>
+            </div>
+            <div class="card-body">
+                {% if user_comments %}
+                <div class="comments-list">
+                    {% for comment in user_comments %}
+                    <div class="comment-item border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-1">
+                                К рецепту:
+                                <a href="{% url 'recipes:recipe-detail' comment.recipe.pk %}" class="text-decoration-none">
+                                    {{ comment.recipe.title }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                        </div>
+
+                        <div class="comment-content mb-2">
+                            <p class="mb-2 comment-text">{{ comment.text|linebreaksbr }}</p>
+
+                            <!-- ДОБАВЛЯЕМ ОТОБРАЖЕНИЕ ИЗОБРАЖЕНИЯ КОММЕНТАРИЯ -->
+                            {% if comment.image %}
+                            <div class="comment-image-preview mt-2">
+                                <img src="{{ comment.image.url }}" alt="Изображение комментария"
+                                     class="img-thumbnail" style="max-height: 150px; max-width: 200px; object-fit: contain;">
+                                <div class="mt-1">
+                                    <small class="text-muted">Изображение в комментарии</small>
+                                </div>
                             </div>
-                            <p class="mb-2">{{ comment.text|truncatewords:20 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
                             <a href="{% url 'recipes:recipe-detail' comment.recipe.pk %}" class="btn btn-outline-primary btn-sm">
                                 <i class="fas fa-external-link-alt me-1"></i>Перейти к рецепту
                             </a>
+                            <form method="post" action="{% url 'comments:delete-comment' comment.pk %}"
+                                  class="d-inline" onsubmit="return confirm('Удалить комментарий?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash me-1"></i>Удалить
+                                </button>
+                            </form>
                         </div>
-                        {% endfor %}
                     </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">У вас пока нет комментариев</p>
-                    </div>
-                    {% endif %}
+                    {% endfor %}
                 </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">У вас пока нет комментариев</p>
+                </div>
+                {% endif %}
             </div>
         </div>
-    </div>
-</div>
 
 <style>
 .profile-photo {

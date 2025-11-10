@@ -90,6 +90,146 @@
             </div>
             {% endif %}
             </div>
+
+            <!-- Секция комментариев -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card comments-card">
+                        <div class="card-header comments-header">
+                            <h4 class="mb-0">
+                                <i class="fas fa-comments me-2"></i>
+                                Комментарии
+                                <span class="badge comments-count">{{ recipe.comments.count }}</span>
+                            </h4>
+                        </div>
+
+                        <div class="card-body p-0">
+                            <!-- Форма добавления комментария -->
+                            {% if user.is_authenticated %}
+                            <div class="comment-form">
+                                <form method="post" action="{% url 'comments:add-comment' recipe.pk %}" enctype="multipart/form-data" id="commentForm">
+                                    {% csrf_token %}
+
+                                    <div class="mb-3">
+                                        <label for="commentText" class="form-label">Добавить комментарий:</label>
+
+                                        <!-- Кнопки управления -->
+                                        <div class="d-flex gap-2 mb-2">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleEmojiPanel()">
+                                                <i class="fas fa-smile"></i> Эмодзи
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info btn-sm" onclick="openImageDialog()">
+                                                <i class="fas fa-image"></i> Изображение
+                                            </button>
+                                        </div>
+
+                                        <!-- Панель эмодзи -->
+                                        <div class="emoji-panel" id="emojiPanel" style="display: none;">
+                                            <div class="emoji-category">
+                                                <h6>Популярные эмодзи</h6>
+                                                <div class="emoji-grid" id="emojiGrid">
+                                                    <!-- Эмодзи добавляются через JS -->
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <textarea name="text" class="form-control" id="commentText" rows="3"
+                                                  placeholder="Поделитесь вашим мнением о рецепте..."
+                                                  maxlength="1000" required></textarea>
+                                        <div class="form-text">Максимум 1000 символов</div>
+                                    </div>
+
+                                    <!-- Скрытое поле для загрузки изображения -->
+                                    <input type="file" name="image" id="commentImage" accept="image/*" style="display: none;">
+
+                                    <!-- Превью изображения -->
+                                    <div class="image-preview mb-3" id="imagePreview" style="display: none;">
+                                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded">
+                                            <img src="" alt="Preview" id="previewImage" style="max-width: 100px; max-height: 80px;">
+                                            <div>
+                                                <small class="text-muted">Изображение для комментария</small>
+                                                <br>
+                                                <button type="button" class="btn btn-outline-danger btn-sm mt-1" onclick="removeImage()">
+                                                    <i class="fas fa-times"></i> Удалить
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-paper-plane me-1"></i>Отправить комментарий
+                                    </button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info m-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <a href="{% url 'users:login' %}" class="alert-link">Войдите</a>, чтобы оставить комментарий
+                            </div>
+                            {% endif %}
+
+                            <!-- Список комментариев -->
+                            <div class="comments-list">
+                                {% if recipe.comments.all %}
+                                    {% for comment in recipe.comments.all %}
+                                    <div class="comment-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div class="d-flex align-items-center">
+                                                {% if comment.author.profile.profile_photo %}
+                                                    <img src="{{ comment.author.profile.profile_photo.url }}"
+                                                         alt="{{ comment.author.username }}"
+                                                         class="comment-avatar me-2">
+                                                {% else %}
+                                                    <div class="avatar-placeholder me-2">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0" style="font-size: 0.9rem;">{{ comment.author.username }}</h6>
+                                                    <small class="comment-time">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                                                </div>
+                                            </div>
+                                            {% if user == comment.author or user.is_superuser %}
+                                            <form method="post" action="{% url 'comments:delete-comment' comment.pk %}"
+                                                  class="d-inline" onsubmit="return confirm('Удалить комментарий?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="comment-content">
+                                            <p class="comment-text">{{ comment.text|linebreaksbr }}</p>
+
+                                            {% if comment.image %}
+                                            <div class="comment-image mt-2">
+                                                <img src="{{ comment.image.url }}" alt="Изображение к комментарию"
+                                                     class="img-fluid rounded" style="max-width: 300px;">
+                                            </div>
+                                            {% endif %}
+
+                                            {% if comment.updated_at != comment.created_at %}
+                                            <small class="comment-edited">
+                                                <i class="fas fa-edit me-1"></i>Изменен: {{ comment.updated_at|date:"d.m.Y H:i" }}
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="comments-empty">
+                                        <i class="fas fa-comment-slash"></i>
+                                        <p class="mb-0">Пока нет комментариев. Будьте первым!</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card-footer">
                 <div class="btn-group">
                     <a href="{% url 'recipes:home' %}" class="btn btn-outline-secondary">Назад к рецептам</a>
@@ -107,4 +247,144 @@
         </div>
     </div>
 </div>
+
+
+    <!-- JavaScript для работы с эмодзи и изображениями -->
+<script>
+function toggleEmojiPanel() {
+    const panel = document.getElementById('emojiPanel');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        // Заполняем эмодзи при первом открытии
+        if (document.getElementById('emojiGrid').children.length === 0) {
+            fillEmojiGrid();
+        }
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function fillEmojiGrid() {
+    const emojis = [
+    // Смайлики и эмоции
+    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+    '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+    '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+    '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+    '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
+    '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
+    '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯',
+    '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐',
+    '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈',
+
+    // Сердца
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+    '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '♥️',
+
+    // Жесты
+    '👍', '👎', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '👆',
+    '👇', '👈', '👉', '🖕', '🤙', '👋', '🤚', '🖐️', '✋', '🖖',
+    '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪',
+
+    // Еда и напитки
+    '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈',
+    '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦',
+    '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔',
+    '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈',
+    '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟',
+    '🍕', '🫓', '🥪', '🥙', '🧆', '🌮', '🌯', '🫔', '🥗', '🥘',
+    '🫕', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪',
+    '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧',
+    '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫',
+    '🍿', '🍩', '🍪', '🌰', '🥜', '🍯', '🥛', '🍼', '🫖', '☕',
+    '🍵', '🧃', '🥤', '🧋', '🍶', '🍺', '🍻', '🥂', '🍷', '🥃',
+    '🍸', '🍹', '🧉', '🍾', '🧊', '🥄', '🍴', '🍽️', '🥣', '🥡',
+
+
+    // Праздники и события
+    '🎉', '🎊', '🎂', '🎀', '🎁', '🎈', '🎆', '🎇', '✨', '🎃',
+    '🎄', '🎋', '🎍', '🎎', '🎏', '🎐', '🎑', '🎫', '🏆', '🥇',
+    '🥈', '🥉', '🏅', '🎖️', '🎗️', '🎟️', '🎭', '🩰', '🎨', '🎪',
+    '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🎸', '🪕',
+    '🎻', '🎬', '🎮', '👾', '🎯', '🎲', '🎰', '🎳', '🪀', '🪁',
+
+
+    // Символы и знаки
+    '🔥', '⭐', '🌟', '💫', '✨', '🎯', '💥', '💦', '💨', '🕳️',
+    '💣', '🛡️', '🔮', '🎁', '🎀', '🎈', '🎊', '🎉', '🎄', '🌪️',
+    '🌈', '☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️',
+    '🌨️', '☃️', '⛄', '🌬️', '💨', '💧', '💦', '☔', '☂️', '🌊',
+];
+
+    const grid = document.getElementById('emojiGrid');
+    emojis.forEach(emoji => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'emoji-btn';
+        button.textContent = emoji;
+        button.onclick = function() {
+            insertEmoji(emoji);
+        };
+        grid.appendChild(button);
+    });
+}
+
+function insertEmoji(emoji) {
+    const textarea = document.getElementById('commentText');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    textarea.value = text.substring(0, start) + emoji + text.substring(end);
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+
+    // Закрываем панель после выбора
+    document.getElementById('emojiPanel').style.display = 'none';
+}
+
+function openImageDialog() {
+    // Просто кликаем по скрытому input file
+    document.getElementById('commentImage').click();
+}
+
+// Обработчик выбора файла
+document.getElementById('commentImage').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Проверяем что это изображение
+        if (!file.type.startsWith('image/')) {
+            alert('Пожалуйста, выберите файл изображения!');
+            return;
+        }
+
+        // Показываем превью
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImage').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+function removeImage() {
+    document.getElementById('commentImage').value = '';
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('previewImage').src = '';
+}
+
+// Закрытие панели эмодзи при клике вне её
+document.addEventListener('click', function(e) {
+    const panel = document.getElementById('emojiPanel');
+    const button = document.querySelector('button[onclick="toggleEmojiPanel()"]');
+
+    if (panel && panel.style.display === 'block' &&
+        !panel.contains(e.target) &&
+        e.target !== button &&
+        !button.contains(e.target)) {
+        panel.style.display = 'none';
+    }
+});
+</script>
 {% endblock %}
+
