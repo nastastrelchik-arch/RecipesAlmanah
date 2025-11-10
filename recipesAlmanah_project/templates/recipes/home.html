@@ -462,37 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Добавляем иконки к полям форм
-    const searchInput = document.getElementById('searchInput');
-    const caloriesInput = document.getElementById('caloriesInput');
-
-    if (searchInput) {
-        const searchIcon = document.createElement('i');
-        searchIcon.className = 'fas fa-search';
-        searchIcon.style.position = 'absolute';
-        searchIcon.style.left = '1rem';
-        searchIcon.style.top = '50%';
-        searchIcon.style.transform = 'translateY(-50%)';
-        searchIcon.style.color = '#6c757d';
-        searchIcon.style.zIndex = '5';
-
-        searchInput.parentNode.style.position = 'relative';
-        searchInput.parentNode.appendChild(searchIcon);
-    }
-
-    if (caloriesInput) {
-        const fireIcon = document.createElement('i');
-        fireIcon.className = 'fas fa-fire';
-        fireIcon.style.position = 'absolute';
-        fireIcon.style.left = '1rem';
-        fireIcon.style.top = '50%';
-        fireIcon.style.transform = 'translateY(-50%)';
-        fireIcon.style.color = '#6c757d';
-        fireIcon.style.zIndex = '5';
-
-        caloriesInput.parentNode.style.position = 'relative';
-        caloriesInput.parentNode.appendChild(fireIcon);
-    }
+    
 
     // Обработка кликов по кнопкам избранного для мгновенной обратной связи
     const favoriteButtons = document.querySelectorAll('a[href*="favorites"]');

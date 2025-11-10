@@ -1,3 +1,42 @@
+/* ===== СТИЛИ ДЛЯ ПОЛЕЙ ФОРМЫ С ИКОНКАМИ ===== */
+
+/* Стили для полей с иконками */
+.form-floating {
+    position: relative;
+}
+
+.form-floating > .form-control {
+    padding-left: 3rem;
+}
+
+.form-floating > label {
+    padding-left: 3rem;
+}
+
+.form-floating .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    color: #6c757d;
+    pointer-events: none;
+}
+
+/* Специфичные стили для разных типов полей */
+#searchInput ~ .input-icon {
+    color: #198754;
+}
+
+#caloriesInput ~ .input-icon {
+    color: #fd7e14;
+}
+
+/* Стили для фокуса */
+.form-floating > .form-control:focus ~ .input-icon {
+    color: #198754;
+}
+
 /* ===== СТИЛИ ДЛЯ ХЕШТЕГОВ ===== */
 
 /* Основные стили для контейнера хештегов */
@@ -159,6 +198,29 @@
     border-radius: 12px;
 }
 
+/* Бейдж избранного - ПОВЕРХ изображения */
+.favorite-badge {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 30; /* Выше чем изображение */
+    pointer-events: none; /* Чтобы не мешал кликам */
+    transition: all 0.3s ease;
+}
+
+/* Увеличиваем бейдж при ховере карточки */
+.recipe-card:hover .favorite-badge {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
 /* Контент карточки */
 .recipe-card .card-body {
     position: relative;
@@ -181,17 +243,6 @@
     color: #666;
     line-height: 1.6;
     font-size: 0.95rem;
-}
-
-/* Бейджи и метки */
-.favorite-badge {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-    color: white;
-    font-weight: 600;
-    font-size: 0.8rem;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
 /* Стили для выбранных хештегов */
@@ -321,6 +372,14 @@
         padding: 0.5em 0.8em;
         margin: 0.15rem;
     }
+
+    /* Уменьшаем бейдж на мобильных */
+    .favorite-badge {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.8rem;
+        top: 8px;
+        right: 8px;
+    }
 }
 
 /* Улучшенная сетка */
@@ -346,6 +405,7 @@
     align-items: center;
     justify-content: center;
     color: #6c757d;
+    position: relative;
 }
 
 /* Стили для активных фильтров */
@@ -417,4 +477,44 @@
 /* Стили для пустого состояния */
 .text-muted i {
     opacity: 0.6;
+}
+
+/* Улучшенные стили для навигации */
+.navbar-brand {
+    font-weight: 700;
+}
+
+.nav-link {
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    transform: translateY(-1px);
+}
+
+/* Стили для сообщений */
+.alert {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f1b0b7 100%);
+    color: #721c24;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
 }
