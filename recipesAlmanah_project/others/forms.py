@@ -1,3 +1,4 @@
+# others/forms.py
 from django import forms
 from .models import Article, Recommendation
 
@@ -23,13 +24,20 @@ class ArticleForm(forms.ModelForm):
 class RecommendationForm(forms.ModelForm):
     class Meta:
         model = Recommendation
-        fields = ['title', 'content', 'recommendation_type', 'related_recipe', 'related_article', 'is_active', 'order']
+        fields = ['title', 'description', 'recommendation_type', 'recipes', 'is_active', 'order']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'recommendation_type': forms.Select(attrs={'class': 'form-control'}),
-            'related_recipe': forms.Select(attrs={'class': 'form-control'}),
-            'related_article': forms.Select(attrs={'class': 'form-control'}),
+            'recipes': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'order': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'title': 'Заголовок',
+            'description': 'Описание',
+            'recommendation_type': 'Тип рекомендации',
+            'recipes': 'Рекомендуемые рецепты',
+            'is_active': 'Активно',
+            'order': 'Порядок отображения',
         }

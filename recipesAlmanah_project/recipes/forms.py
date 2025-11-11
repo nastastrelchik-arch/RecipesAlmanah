@@ -1,21 +1,25 @@
+# recipes/forms.py
 from django import forms
 from django.forms import inlineformset_factory
 from .models import Recipe, Ingredient, CookingStep, Hashtag
+
 
 class RecipeForm(forms.ModelForm):
     hashtags_text = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Введите хештеги через запятую, например: #завтрак, #быстро, #вкусно'
+            'placeholder': 'Введите хештеги через запятую, например: #завтрак, #быстро, #вкусно',
+            'id': 'hashtags-text-input'  # Добавляем явный ID
         }),
-        help_text="Введите хештеги через запятую. Новые хештеги будут автоматически созданы."
+        help_text="Введите хештеги через запятую. Новые хештеги будут автоматически созданы.",
+        label="Хештеги"
     )
 
     class Meta:
         model = Recipe
         fields = ['title', 'description', 'cooking_time', 'servings',
-                 'calories_per_100g', 'difficulty', 'main_photo']
+                  'calories_per_100g', 'difficulty', 'main_photo']
         labels = {
             'title': 'Название рецепта',
             'description': 'Описание',
@@ -48,7 +52,7 @@ class RecipeForm(forms.ModelForm):
     def clean_hashtags_text(self):
         hashtags_text = self.cleaned_data.get('hashtags_text', '')
         if not hashtags_text:
-            return []
+            return ''
 
         # Разделяем хештеги по запятым и очищаем от пробелов
         hashtag_list = [tag.strip() for tag in hashtags_text.split(',') if tag.strip()]
@@ -60,7 +64,7 @@ class RecipeForm(forms.ModelForm):
                 tag = '#' + tag
             cleaned_hashtags.append(tag)
 
-        return cleaned_hashtags
+        return ', '.join(cleaned_hashtags)
 
     def save(self, commit=True):
         # Сначала сохраняем рецепт
@@ -68,15 +72,18 @@ class RecipeForm(forms.ModelForm):
 
         if commit:
             # Обрабатываем хештеги только после сохранения рецепта
-            hashtag_list = self.cleaned_data.get('hashtags_text', [])
+            hashtags_text = self.cleaned_data.get('hashtags_text', '')
 
-            # Очищаем текущие хештеги
-            recipe.hashtags.clear()
+            if hashtags_text:
+                hashtag_list = [tag.strip() for tag in hashtags_text.split(',') if tag.strip()]
 
-            # Добавляем новые хештеги
-            for tag_name in hashtag_list:
-                hashtag, created = Hashtag.objects.get_or_create(name=tag_name)
-                recipe.hashtags.add(hashtag)
+                # Очищаем текущие хештеги
+                recipe.hashtags.clear()
+
+                # Добавляем новые хештеги
+                for tag_name in hashtag_list:
+                    hashtag, created = Hashtag.objects.get_or_create(name=tag_name)
+                    recipe.hashtags.add(hashtag)
 
         return recipe
 
@@ -106,23 +113,22 @@ class CookingStepForm(forms.ModelForm):
 
 
 # Formsets
-# Создаем formsets
 IngredientFormSet = inlineformset_factory(
     Recipe,
     Ingredient,
     form=IngredientForm,
-    extra=0,  # Уменьшите extra до 0
+    extra=1,
     can_delete=True,
     fields=['name', 'quantity'],
-    validate_min=False,  # Разрешаем пустые формы
+    validate_min=False,
 )
 
 CookingStepFormSet = inlineformset_factory(
     Recipe,
     CookingStep,
     form=CookingStepForm,
-    extra=0,  # Уменьшите extra до 0
+    extra=1,
     can_delete=True,
     fields=['step_number', 'description', 'photo'],
-    validate_min=False,  # Разрешаем пустые формы
+    validate_min=False,
 )

@@ -1,10 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<!-- others/templates/others/recommendations_list.html -->
+{% extends 'base.html' %}
+{% load static %}
 
-</body>
-</html>
+{% block title %}Рекомендации - Кулинарный сайт{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-star me-2 text-warning"></i>
+                Рекомендации для вас
+            </h1>
+
+            <!-- Отладочная информация -->
+            {% if debug_info %}
+            <div class="alert alert-info">
+                <h6><i class="fas fa-bug me-2"></i>Отладочная информация:</h6>
+                <ul class="mb-0">
+                    <li>Избранных рецептов: {{ debug_info.favorite_count }}</li>
+                    <li>Хештегов в избранном: {{ debug_info.hashtag_count }}</li>
+                    <li>Рекомендаций по хештегам: {{ debug_info.recommended_by_hashtags_count }}</li>
+                    <li>Популярных рецептов: {{ debug_info.popular_recipes_count }}</li>
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if message %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ message }}
+            </div>
+            {% endif %}
+
+            {% for recommendation in recommendations %}
+            <div class="recommendation-section mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="text-success">{{ recommendation.title }}</h3>
+                    <span class="badge bg-{% if recommendation.type == 'hashtag' %}primary{% elif recommendation.type == 'popular' %}warning{% else %}info{% endif %}">
+                        {% if recommendation.type == 'hashtag' %}По интересам
+                        {% elif recommendation.type == 'popular' %}Популярное
+                        {% else %}Трендовое{% endif %}
+                    </span>
+                </div>
+
+                {% if recommendation.description %}
+                <p class="text-muted mb-4">{{ recommendation.description }}</p>
+                {% endif %}
+
+                {% if recommendation.recipes %}
+                <div class="row">
+                    {% for recipe in recommendation.recipes %}
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="card recipe-card h-100">
+                            {% if recipe.main_photo %}
+                            <img src="{{ recipe.main_photo.url }}" class="card-img-top recipe-image" alt="{{ recipe.title }}">
+                            {% else %}
+                            <div class="recipe-image-placeholder card-img-top d-flex align-items-center justify-content-center">
+                                <i class="fas fa-utensils fa-3x text-muted"></i>
+                            </div>
+                            {% endif %}
+
+                            <div class="card-body">
+                                <h6 class="card-title">{{ recipe.title }}</h6>
+                                <div class="recipe-meta">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>{{ recipe.cooking_time }} мин
+                                        <i class="fas fa-fire ms-2 me-1"></i>{{ recipe.calories_per_100g }} ккал
+                                    </small>
+                                </div>
+
+                                {% if recipe.hashtags.all %}
+                                <div class="hashtags mt-2">
+                                    {% for hashtag in recipe.hashtags.all|slice:":2" %}
+                                    <span class="badge bg-secondary badge-sm me-1">{{ hashtag.name }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="card-footer bg-transparent">
+                                <a href="{% url 'recipes:recipe-detail' recipe.pk %}" class="btn btn-outline-success btn-sm w-100">
+                                    <i class="fas fa-eye me-1"></i>Смотреть
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Пока нет подходящих рецептов для этой категории
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
