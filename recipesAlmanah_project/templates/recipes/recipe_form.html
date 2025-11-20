@@ -118,18 +118,30 @@
 
                         <div class="row g-3">
                             <div class="col-md-8">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-list me-1"></i>Быстрый выбор хештегов
-                                </label>
-                                <select class="form-select" id="hashtag-select" multiple style="height: 120px;">
-                                    {% for hashtag in existing_hashtags %}
-                                    <option value="{{ hashtag.name }}">{{ hashtag.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <div class="form-text text-muted">
-                                    <i class="fas fa-mouse-pointer me-1"></i>Удерживайте Ctrl для выбора нескольких хештегов
-                                </div>
-                            </div>
+    <label class="form-label fw-bold">
+        <i class="fas fa-list me-1"></i>Быстрый выбор хештегов
+    </label>
+
+    <!-- Поле поиска в селекте -->
+    <div class="input-group mb-2">
+        <span class="input-group-text bg-light">
+            <i class="fas fa-search text-muted"></i>
+        </span>
+        <input type="text" class="form-control" id="hashtagSearchSelect" placeholder="Поиск хештегов...">
+        <button class="btn btn-outline-secondary" type="button" id="clearHashtagSelectSearch">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <select class="form-select" id="hashtag-select" multiple style="height: 120px;">
+        {% for hashtag in existing_hashtags %}
+        <option value="{{ hashtag.name }}">{{ hashtag.name }}</option>
+        {% endfor %}
+    </select>
+    <div class="form-text text-muted">
+        <i class="fas fa-mouse-pointer me-1"></i>Удерживайте Ctrl для выбора нескольких хештегов
+    </div>
+</div>
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">
                                     <i class="fas fa-plus-circle me-1"></i>Добавить новый хештег
@@ -577,6 +589,39 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Поле хештегов:', hashtagsTextInput);
     console.log('Начальное значение:', hashtagsTextInput.value);
 });
+
+// Поиск в селекте хештегов
+const hashtagSearchSelect = document.getElementById('hashtagSearchSelect');
+const clearHashtagSelectSearch = document.getElementById('clearHashtagSelectSearch');
+const hashtagSelect = document.getElementById('hashtag-select');
+
+if (hashtagSearchSelect && hashtagSelect) {
+    hashtagSearchSelect.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const options = hashtagSelect.options;
+
+        for (let option of options) {
+            const optionText = option.textContent.toLowerCase();
+            if (optionText.includes(searchTerm)) {
+                option.style.display = 'block';
+            } else {
+                option.style.display = 'none';
+            }
+        }
+    });
+
+    // Очистка поиска в селекте
+    if (clearHashtagSelectSearch) {
+        clearHashtagSelectSearch.addEventListener('click', function() {
+            hashtagSearchSelect.value = '';
+            const options = hashtagSelect.options;
+            for (let option of options) {
+                option.style.display = 'block';
+            }
+            hashtagSearchSelect.focus();
+        });
+    }
+}
 </script>
 
 {% endblock %}

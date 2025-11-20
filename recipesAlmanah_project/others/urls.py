@@ -1,4 +1,3 @@
-
 from django.urls import path
 from . import views
 
@@ -14,6 +13,8 @@ urlpatterns = [
     # Рекомендации
     path('recommendations/', views.recommendations_list, name='recommendations-list'),
 
-    # Статистика (только для staff)
+    # Статистика
     path('statistics/', views.statistics_view, name='statistics'),
+    path('statistics/public/', views.public_statistics_view, name='public-statistics'),
+    path('statistics/update/', views.update_statistics, name='update-statistics'),
 ]

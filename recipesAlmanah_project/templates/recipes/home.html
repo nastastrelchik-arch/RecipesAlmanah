@@ -4,6 +4,7 @@
 {% block title %}Главная страница - Рецептурный альманах{% endblock %}
 
 {% block content %}
+
 <div class="row mb-4">
     <div class="col-12">
         <h1><i class="fas fa-utensils me-2 text-success"></i>Главная</h1>
@@ -22,38 +23,53 @@
                     <label for="caloriesInput"><i class="fas fa-fire me-1"></i>Макс. калории</label>
                 </div>
             </div>
-            <div class="col-md-3">
-                <!-- Улучшенный выпадающий список для хештегов -->
-                <label class="form-label"><i class="fas fa-tags me-1"></i>Хештеги:</label>
-                <div class="dropdown hashtags-dropdown">
-                    <button type="button" class="btn btn-outline-success w-100 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="hashtagsDropdown">
-                        <i class="fas fa-filter me-1"></i>Выбрать хештеги
-                        {% if selected_hashtags %}
-                        <span class="badge bg-primary ms-1">{{ selected_hashtags|length }}</span>
-                        {% endif %}
-                    </button>
-                    <div class="dropdown-menu p-0" style="min-width: 320px;">
-                        <div class="dropdown-header">
-                            <i class="fas fa-hashtag me-2"></i>Выберите хештеги
+                    <div class="col-md-3">
+            <!-- Улучшенный выпадающий список для хештегов с поиском -->
+            <label class="form-label"><i class="fas fa-tags me-1"></i>Хештеги:</label>
+            <div class="dropdown hashtags-dropdown">
+                <button type="button" class="btn btn-outline-success w-100 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="hashtagsDropdown">
+                    <i class="fas fa-filter me-1"></i>Выбрать хештеги
+                    {% if selected_hashtags %}
+                    <span class="badge bg-primary ms-1">{{ selected_hashtags|length }}</span>
+                    {% endif %}
+                </button>
+                <div class="dropdown-menu p-0" style="min-width: 320px;">
+                    <div class="dropdown-header">
+                        <i class="fas fa-hashtag me-2"></i>Выберите хештеги
+                    </div>
+
+                    <!-- Поле поиска хештегов -->
+                    <div class="p-2 border-bottom">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control" id="hashtagSearchInput" placeholder="Поиск хештегов...">
                         </div>
-                        <div class="hashtags-checkboxes p-3">
-                            {% for hashtag in all_hashtags %}
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="hashtags" value="{{ hashtag.name }}"
-                                       id="hashtag-{{ forloop.counter }}"
-                                       {% if hashtag.name in selected_hashtags %}checked{% endif %}>
-                                <label class="form-check-label" for="hashtag-{{ forloop.counter }}">
-                                    {{ hashtag.name }}
-                                </label>
-                            </div>
-                            {% empty %}
-                            <div class="text-center text-muted py-3">
-                                <i class="fas fa-info-circle me-1"></i>Хештегов пока нет
-                            </div>
-                            {% endfor %}
+                    </div>
+
+                    <div class="hashtags-checkboxes p-3" style="max-height: 300px; overflow-y: auto;">
+                        {% for hashtag in all_hashtags %}
+                        <div class="form-check hashtag-item">
+                            <input class="form-check-input" type="checkbox" name="hashtags" value="{{ hashtag.name }}"
+                                   id="hashtag-{{ forloop.counter }}"
+                                   {% if hashtag.name in selected_hashtags %}checked{% endif %}>
+                            <label class="form-check-label" for="hashtag-{{ forloop.counter }}">
+                                {{ hashtag.name }}
+                            </label>
                         </div>
-                        <div class="dropdown-footer">
-                            <small class="text-muted">Выбрано: <span id="selected-count">{{ selected_hashtags|length }}</span></small>
+                        {% empty %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-info-circle me-1"></i>Хештегов пока нет
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="dropdown-footer p-2 border-top bg-light d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Выбрано: <span id="selected-count">{{ selected_hashtags|length }}</span></small>
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm me-1" id="clearHashtagSearch">
+                                <i class="fas fa-times me-1"></i>Очистить
+                            </button>
                             <button type="button" class="btn btn-success btn-sm" onclick="document.getElementById('search-form').submit()">
                                 <i class="fas fa-check me-1"></i>Применить
                             </button>
@@ -61,6 +77,7 @@
                     </div>
                 </div>
             </div>
+        </div>
             <div class="col-md-2">
                 <button type="submit" class="btn btn-success w-100">
                     <i class="fas fa-search me-1"></i>Найти
@@ -544,6 +561,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+document.addEventListener('DOMContentLoaded', function() {
+    // Функция для поиска хештегов в выпадающем списке
+    function initHashtagSearch() {
+        const searchInput = document.getElementById('hashtagSearchInput');
+        const clearSearchBtn = document.getElementById('clearHashtagSearch');
+        const hashtagItems = document.querySelectorAll('.hashtag-item');
 
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+
+                hashtagItems.forEach(item => {
+                    const label = item.querySelector('.form-check-label');
+                    const hashtagText = label.textContent.toLowerCase();
+
+                    if (hashtagText.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+
+            // Очистка поиска
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', function() {
+                    searchInput.value = '';
+                    hashtagItems.forEach(item => {
+                        item.style.display = 'block';
+                    });
+                    searchInput.focus();
+                });
+            }
+
+            // Очистка поиска при закрытии dropdown
+            const dropdown = document.querySelector('.hashtags-dropdown');
+            if (dropdown) {
+                dropdown.addEventListener('hidden.bs.dropdown', function() {
+                    setTimeout(() => {
+                        searchInput.value = '';
+                        hashtagItems.forEach(item => {
+                            item.style.display = 'block';
+                        });
+                    }, 300);
+                });
+            }
+        }
+    }
+
+    // Инициализация поиска хештегов
+    initHashtagSearch();
+
+    // Остальной существующий JavaScript код...
+});
 </script>
 {% endblock %}

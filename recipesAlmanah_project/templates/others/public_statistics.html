@@ -1,0 +1,62 @@
+<!-- others/templates/others/public_statistics.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Статистика сайта - Кулинарный сайт{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-chart-bar me-2 text-primary"></i>
+                Статистика сайта
+            </h1>
+
+            <!-- Общая статистика -->
+            <div class="row mb-5">
+                {% include 'others/_statistics_cards.html' %}
+            </div>
+
+            <!-- Популярные рецепты -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <h3 class="mb-4 text-success">
+                        <i class="fas fa-crown me-2"></i>Популярные рецепты
+                    </h3>
+                    <div class="row">
+                        {% for recipe in statistics.popular_recipes|slice:":6" %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card recipe-card h-100">
+                                {% if recipe.main_photo %}
+                                <img src="{{ recipe.main_photo.url }}" class="card-img-top recipe-image" alt="{{ recipe.title }}">
+                                {% else %}
+                                <div class="recipe-image-placeholder card-img-top d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-utensils fa-3x text-muted"></i>
+                                </div>
+                                {% endif %}
+
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ recipe.title }}</h5>
+                                    <p class="card-text text-muted">{{ recipe.description|truncatewords:15 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-heart me-1"></i>{{ recipe.fav_count_annotated }}
+                                        </span>
+                                        <a href="{% url 'recipes:recipe-detail' recipe.pk %}" class="btn btn-sm btn-outline-success">
+                                            Смотреть
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Другая статистика... -->
+        </div>
+    </div>
+</div>
+{% endblock %}
