@@ -4,6 +4,7 @@ from django.contrib import messages
 from .models import Article, Recommendation, Statistic
 from .forms import ArticleForm
 from recipes.models import Hashtag, Recipe
+from users.models import User
 from django.db.models import Count, Q
 import json
 from datetime import datetime, timedelta
@@ -92,27 +93,145 @@ def is_staff_user(user):
     return user.is_staff
 
 
+def _generate_site_statistics(self):
+    """Сгенерировать статистику сайта"""
+    from recipes.models import Favorite
+
+    # Топ-10 популярных рецептов (по количеству в избранном)
+    popular_recipes = Recipe.objects.annotate(
+        fav_count_annotated=Count('favorite', distinct=True)
+    ).filter(
+        fav_count_annotated__gt=0
+    ).order_by('-fav_count_annotated')[:10]
+
+    # Новинки (последние 10 рецептов)
+    new_recipes = Recipe.objects.all().order_by('-created_at')[:10]
+
+    # Топ-10 популярных хештегов (по количеству использований в рецептах)
+    popular_hashtags = Hashtag.objects.annotate(
+        usage_count=Count('recipe', distinct=True)
+    ).filter(
+        usage_count__gt=0
+    ).order_by('-usage_count')[:10]
+
+    # Топ-3 популярных автора - ИСПРАВЛЕННЫЙ ЗАПРОС
+    from django.db.models import Subquery, OuterRef
+
+    # Подзапрос для количества рецептов
+    recipe_count_subquery = Recipe.objects.filter(
+        author_id=OuterRef('id')
+    ).values('author_id').annotate(
+        count=Count('id', distinct=True)
+    ).values('count')[:1]
+
+    # Подзапрос для количества избранного - ИСПРАВЛЕННЫЙ
+    # Считаем только уникальные связи автор-избранное
+    favorite_count_subquery = Favorite.objects.filter(
+        recipe__author_id=OuterRef('id')
+    ).values('recipe__author_id').annotate(
+        count=Count('id', distinct=True)
+    ).values('count')[:1]
+
+    popular_authors = User.objects.annotate(
+        recipe_count=Subquery(recipe_count_subquery),
+        total_favorites=Subquery(favorite_count_subquery)
+    ).filter(
+        recipe_count__isnull=False
+    ).order_by('-total_favorites', '-recipe_count')[:3]
+
+    # Дополнительная статистика
+    total_recipes = Recipe.objects.count()
+    total_users = User.objects.count()
+    total_favorites = Favorite.objects.count()
+
+    # Статистика за последнюю неделю
+    week_ago = datetime.now() - timedelta(days=7)
+    new_recipes_week = Recipe.objects.filter(created_at__gte=week_ago).count()
+    new_users_week = User.objects.filter(date_joined__gte=week_ago).count()
+
+    # ОТЛАДКА: выведем реальные значения для проверки
+    print("=== DEBUG: REAL FAVORITE COUNTS ===")
+    for author in popular_authors:
+        real_favorite_count = Favorite.objects.filter(
+            recipe__author=author
+        ).count()
+        print(f"Author: {author.username}, Subquery count: {author.total_favorites}, Real count: {real_favorite_count}")
+
+    return {
+        'popular_recipes': list(popular_recipes),
+        'new_recipes': list(new_recipes),
+        'popular_hashtags': list(popular_hashtags),
+        'popular_authors': list(popular_authors),
+        'total_recipes': total_recipes,
+        'total_users': total_users,
+        'total_favorites': total_favorites,
+        'new_recipes_week': new_recipes_week,
+        'new_users_week': new_users_week,
+    }
+
 @user_passes_test(is_staff_user)
 def statistics_view(request):
     """Страница статистики для администраторов"""
-    statistics = Statistic.objects.get_site_statistics()
-    detailed_stats = Statistic.objects.get_detailed_statistics()
+    try:
+        # Используем менеджер модели Statistic для получения статистики
+        statistics = Statistic.objects.get_site_statistics()
+        detailed_stats = Statistic.objects.get_detailed_statistics()
 
-    context = {
-        'statistics': statistics,
-        'detailed_stats': detailed_stats,
-    }
-    return render(request, 'others/statistics.html', context)
+        context = {
+            'statistics': statistics,
+            'detailed_stats': detailed_stats,
+        }
+        return render(request, 'others/statistics.html', context)
+    except Exception as e:
+        # Если есть ошибка, показываем сообщение
+        messages.error(request, f'Ошибка при загрузке статистики: {str(e)}')
+        # Возвращаем пустую статистику
+        context = {
+            'statistics': {
+                'popular_recipes': [],
+                'new_recipes': [],
+                'popular_hashtags': [],
+                'popular_authors': [],
+                'total_recipes': 0,
+                'total_users': 0,
+                'total_favorites': 0,
+                'new_recipes_week': 0,
+                'new_users_week': 0,
+            },
+            'detailed_stats': {
+                'monthly_stats': [],
+                'active_users': [],
+                'most_commented': [],
+            }
+        }
+        return render(request, 'others/statistics.html', context)
 
 
 def public_statistics_view(request):
     """Публичная страница статистики для всех пользователей"""
-    statistics = Statistic.objects.get_site_statistics()
+    try:
+        statistics = Statistic.objects.get_site_statistics()
 
-    context = {
-        'statistics': statistics,
-    }
-    return render(request, 'others/public_statistics.html', context)
+        context = {
+            'statistics': statistics,
+        }
+        return render(request, 'others/public_statistics.html', context)
+    except Exception as e:
+        messages.error(request, f'Ошибка при загрузке статистики: {str(e)}')
+        context = {
+            'statistics': {
+                'popular_recipes': [],
+                'new_recipes': [],
+                'popular_hashtags': [],
+                'popular_authors': [],
+                'total_recipes': 0,
+                'total_users': 0,
+                'total_favorites': 0,
+                'new_recipes_week': 0,
+                'new_users_week': 0,
+            }
+        }
+        return render(request, 'others/public_statistics.html', context)
 
 
 def update_statistics(request):

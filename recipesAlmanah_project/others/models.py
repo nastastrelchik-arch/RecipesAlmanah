@@ -19,13 +19,11 @@ class StatisticsManager(models.Manager):
 
     def _generate_site_statistics(self):
         """Сгенерировать статистику сайта"""
-        # Импортируем здесь, чтобы избежать циклических импортов
         from recipes.models import Favorite
 
         # Топ-10 популярных рецептов (по количеству в избранном)
-        # Используем другое имя для аннотации, чтобы избежать конфликта
         popular_recipes = Recipe.objects.annotate(
-            fav_count_annotated=Count('favorite')  # Изменили имя
+            fav_count_annotated=Count('favorite', distinct=True)
         ).filter(
             fav_count_annotated__gt=0
         ).order_by('-fav_count_annotated')[:10]
@@ -35,17 +33,33 @@ class StatisticsManager(models.Manager):
 
         # Топ-10 популярных хештегов (по количеству использований в рецептах)
         popular_hashtags = Hashtag.objects.annotate(
-            usage_count=Count('recipe')
+            usage_count=Count('recipe', distinct=True)
         ).filter(
             usage_count__gt=0
         ).order_by('-usage_count')[:10]
 
-        # Топ-3 популярных автора (по количеству рецептов и избранного)
+        # Топ-3 популярных автора - используем корректный запрос
+        from django.db.models import Subquery, OuterRef
+
+        # Подзапрос для количества рецептов
+        recipe_count_subquery = Recipe.objects.filter(
+            author_id=OuterRef('id')
+        ).values('author_id').annotate(
+            count=Count('id', distinct=True)
+        ).values('count')[:1]
+
+        # Подзапрос для количества избранного (сколько раз рецепты автора были добавлены в избранное)
+        favorite_count_subquery = Favorite.objects.filter(
+            recipe__author_id=OuterRef('id')
+        ).values('recipe__author_id').annotate(
+            count=Count('id', distinct=True)
+        ).values('count')[:1]
+
         popular_authors = User.objects.annotate(
-            recipe_count=Count('recipe'),
-            total_favorites=Count('recipe__favorite')
+            recipe_count=Subquery(recipe_count_subquery),
+            total_favorites=Subquery(favorite_count_subquery)
         ).filter(
-            recipe_count__gt=0
+            recipe_count__isnull=False
         ).order_by('-total_favorites', '-recipe_count')[:3]
 
         # Дополнительная статистика
@@ -72,7 +86,6 @@ class StatisticsManager(models.Manager):
 
     def get_detailed_statistics(self):
         """Получить детальную статистику для админ-панели"""
-        # Импортируем здесь, чтобы избежать циклических импортов
         from recipes.models import Favorite
 
         # Статистика по месяцам
@@ -81,13 +94,13 @@ class StatisticsManager(models.Manager):
         monthly_stats = Recipe.objects.annotate(
             month=TruncMonth('created_at')
         ).values('month').annotate(
-            count=Count('id')
+            count=Count('id', distinct=True)
         ).order_by('-month')[:12]
 
         # Статистика по активным пользователям
         active_users = User.objects.annotate(
-            recipe_count=Count('recipe'),
-            favorite_count_annotated=Count('favorite')  # Изменили имя
+            recipe_count=Count('recipe', distinct=True),
+            favorite_count_annotated=Count('favorite', distinct=True)
         ).filter(
             Q(recipe_count__gt=0) | Q(favorite_count_annotated__gt=0)
         ).order_by('-recipe_count', '-favorite_count_annotated')[:10]
@@ -96,7 +109,7 @@ class StatisticsManager(models.Manager):
         try:
             from comments.models import Comment
             most_commented = Recipe.objects.annotate(
-                comment_count=Count('comments')
+                comment_count=Count('comments', distinct=True)
             ).filter(
                 comment_count__gt=0
             ).order_by('-comment_count')[:10]
@@ -108,7 +121,6 @@ class StatisticsManager(models.Manager):
             'active_users': list(active_users),
             'most_commented': list(most_commented),
         }
-
 
 class Article(models.Model):
     title = models.CharField(max_length=200, verbose_name="Заголовок")
@@ -242,6 +254,7 @@ class RecommendationManager(models.Manager):
         popular_recipes = Recipe.objects.annotate(
             fav_count_annotated=Count('favorite')
         ).filter(
+        ).filter(
             fav_count_annotated__gt=0
         ).order_by('-fav_count_annotated', '-created_at')[:8]
 
@@ -342,7 +355,7 @@ class Statistic(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
-    objects = StatisticsManager()  # Добавляем менеджер
+    objects = StatisticsManager()  # Убедитесь, что эта строка присутствует
 
     class Meta:
         verbose_name = "Статистика"
