@@ -5,9 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="48c9dd52-a46f-481a-a069-f64cb8abc318" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/db.sqlite3" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/templates/recipes/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/templates/recipes/home.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/templates/recipes/recipe_form.html" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/templates/recipes/recipe_form.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/templates/users/edit_profile.html" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/templates/users/edit_profile.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/users/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/users/forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/users/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/users/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -153,7 +156,7 @@
       <workItem from="1762891194481" duration="635000" />
       <workItem from="1763632892331" duration="4839000" />
       <workItem from="1763734623639" duration="1639000" />
-      <workItem from="1763979132333" duration="3617000" />
+      <workItem from="1763979132333" duration="13921000" />
     </task>
     <servers />
   </component>

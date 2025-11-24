@@ -6,7 +6,7 @@ from recipes.models import Recipe, Favorite
 from comments.models import Comment
 from django.views.decorators.http import require_http_methods
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
-
+from django.utils import timezone
 
 # Обработка регистрации новых пользователей на сайте
 def register(request):
@@ -102,6 +102,7 @@ def edit_profile(request):
             'u_form': u_form,
             'p_form': p_form,
             'title': 'Редактирование профиля',
+            'today': timezone.now().date(),
         }
 
         return render(request, 'users/edit_profile.html', context)

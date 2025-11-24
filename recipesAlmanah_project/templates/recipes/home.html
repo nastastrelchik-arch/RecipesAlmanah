@@ -65,16 +65,16 @@
                             {% endfor %}
                         </div>
                         <div class="dropdown-footer p-2 border-top bg-light d-flex justify-content-between align-items-center">
-                            <small class="text-muted">Выбрано: <span id="selected-count">{{ selected_hashtags|length }}</span></small>
-                            <div>
-                                <button type="button" class="btn btn-outline-secondary btn-sm me-1" id="clearHashtags">
-                                    <i class="fas fa-times me-1"></i>Очистить все
-                                </button>
-                                <button type="submit" class="btn btn-success btn-sm">
-                                    <i class="fas fa-check me-1"></i>Применить
-                                </button>
-                            </div>
+                        <small class="text-muted">Выбрано: <span id="selected-count">{{ selected_hashtags|length }}</span></small>
+                        <div>
+                            <button type="button" class="btn btn-outline-danger btn-sm me-1" id="clearAllHashtags">
+                                <i class="fas fa-broom me-1"></i>Очистить все
+                            </button>
+                            <button type="button" class="btn btn-success btn-sm" onclick="applyHashtags()">
+                                <i class="fas fa-check me-1"></i>Применить
+                            </button>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -624,4 +624,77 @@ document.addEventListener('DOMContentLoaded', function() {
     // Остальной существующий JavaScript код...
 });
 </script>
+
+<style>
+/* Полностью скрываем чекбоксы */
+.hashtags-checkboxes .form-check-input {
+    display: none !important;
+}
+
+.hashtags-checkboxes .form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.hashtags-checkboxes .form-check-label {
+    flex-grow: 1;
+    word-break: break-word;
+    line-height: 1.2;
+    margin-left: 0;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 0.25rem 0;
+    width: 100%;
+}
+
+/* Стили для выбранных хештегов */
+.hashtags-checkboxes .form-check-input:checked + .form-check-label {
+    color: #198754;
+    font-weight: 600;
+    background-color: rgba(25, 135, 84, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin: -0.25rem -0.5rem;
+}
+
+.hashtags-checkboxes .form-check:hover {
+    background-color: #f8f9fa;
+}
+
+/* Улучшенные стили для скроллбара */
+.hashtags-checkboxes::-webkit-scrollbar {
+    width: 8px;
+}
+
+.hashtags-checkboxes::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.hashtags-checkboxes::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.hashtags-checkboxes::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .hashtags-checkboxes .form-check {
+        padding: 0.4rem 0.6rem;
+    }
+
+    .hashtags-checkboxes .form-check-input:checked + .form-check-label {
+        padding: 0.2rem 0.4rem;
+        margin: -0.2rem -0.4rem;
+    }
+}
+</style>
 {% endblock %}

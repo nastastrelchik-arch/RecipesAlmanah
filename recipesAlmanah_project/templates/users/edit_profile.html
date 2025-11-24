@@ -119,11 +119,16 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ p_form.birth_date }}
-                                    <label for="{{ p_form.birth_date.id_for_label }}" class="form-label">Дата рождения</label>
-                                </div>
-                            </div>
+    <div class="form-floating">
+        <input type="date"
+               name="{{ p_form.birth_date.name }}"
+               id="{{ p_form.birth_date.id_for_label }}"
+               class="form-control"
+               value="{{ p_form.birth_date.value|date:'Y-m-d' }}"
+               max="{{ today|date:'Y-m-d' }}">
+        <label for="{{ p_form.birth_date.id_for_label }}" class="form-label">Дата рождения</label>
+    </div>
+</div>
                         </div>
 
                         <!-- Настройки -->
@@ -258,6 +263,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
+
 // Добавляем классы к полям форм для стилизации
 document.addEventListener('DOMContentLoaded', function() {
     // Добавляем классы к полям User формы

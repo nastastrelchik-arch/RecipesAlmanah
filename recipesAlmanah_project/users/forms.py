@@ -59,7 +59,12 @@ class ProfileUpdateForm(forms.ModelForm):
     show_favorites = forms.BooleanField(required=False, initial=True, label='Показывать избранные рецепты')
     bio = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 4}), label='О себе')
     location = forms.CharField(required=False, max_length=30, label='Местоположение')
+    birth_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        label='Дата рождения'
+    )
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 'profile_photo', 'show_favorites', 'bio', 'location']
+        fields = ['username', 'email', 'first_name', 'last_name', 'profile_photo', 'show_favorites', 'bio', 'location', 'birth_date']
