@@ -1,111 +1,125 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Статьи о кулинарии - Кулинарный сайт{% endblock %}
+{% block title %}Статьи - Кулинарный сайт{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="mb-0">
-                    <i class="fas fa-newspaper me-2 text-success"></i>
-                    Статьи о кулинарии
-                </h1>
-                <div>
-                    {% if user.is_staff %}
-                    <a href="{% url 'others:create-article' %}" class="btn btn-success me-2">
-                        <i class="fas fa-plus me-1"></i>Новая статья
+                <h1><i class="fas fa-newspaper me-2"></i>Статьи</h1>
+                {% if user.is_staff %}
+                <div class="btn-group">
+                    <a href="{% url 'others:article-management' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-cog me-1"></i>Управление статьями
                     </a>
-                    <a href="{% url 'others:article-management' %}" class="btn btn-outline-success">
-                        <i class="fas fa-cog me-1"></i>Управление
+                    <a href="{% url 'others:create-article' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Создать статью
+                    </a>
+                </div>
+                {% else %}
+                <a href="{% url 'others:propose-article' %}" class="btn btn-primary">
+                    <i class="fas fa-lightbulb me-1"></i>Предложить статью
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if articles %}
+    <div class="row">
+        {% for article in articles %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 article-card">
+                {% if article.main_image %}
+                <img src="{{ article.main_image.url }}" class="card-img-top" alt="{{ article.title }}"
+                     style="height: 200px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                     style="height: 200px;">
+                    <i class="fas fa-image fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ article.title }}</h5>
+
+                    <div class="article-meta text-muted mb-2">
+                        <small>
+                            <i class="fas fa-user me-1"></i>{{ article.author.username }} |
+                            <i class="fas fa-calendar me-1"></i>{{ article.published_at|date:"d.m.Y" }} |
+                            <i class="fas fa-eye me-1"></i>{{ article.views_count }}
+                        </small>
+                    </div>
+
+                    <p class="card-text flex-grow-1">
+                        {% if article.content|length > 150 %}
+                            {{ article.content|slice:150 }}...
+                        {% else %}
+                            {{ article.content }}
+                        {% endif %}
+                    </p>
+
+                    <div class="article-type-badge mb-2">
+                        {% if article.article_type == 'text_only' %}
+                        <span class="badge bg-primary"><i class="fas fa-font me-1"></i>Текст</span>
+                        {% elif article.article_type == 'photo_only' %}
+                        <span class="badge bg-success"><i class="fas fa-camera me-1"></i>Фото</span>
+                        {% else %}
+                        <span class="badge bg-warning"><i class="fas fa-images me-1"></i>Смешанный</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-auto">
+                        <a href="{% url 'others:article-detail' article.pk %}" class="btn btn-outline-primary btn-sm">
+                            Читать далее <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card text-center py-5">
+                <div class="card-body">
+                    <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                    <h3>Статьи пока не добавлены</h3>
+                    <p class="text-muted">Здесь скоро появятся интересные статьи на кулинарные темы.</p>
+                    {% if user.is_staff %}
+                    <a href="{% url 'others:create-article' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Создать первую статью
                     </a>
                     {% else %}
-                    <a href="{% url 'others:propose-article' %}" class="btn btn-success">
+                    <a href="{% url 'others:propose-article' %}" class="btn btn-primary">
                         <i class="fas fa-lightbulb me-1"></i>Предложить статью
                     </a>
                     {% endif %}
                 </div>
             </div>
-
-            {% if articles %}
-            <div class="row">
-                {% for article in articles %}
-                <div class="col-lg-6 col-md-12 mb-4">
-                    <div class="card article-card h-100 border-success">
-                        <div class="row g-0">
-                            {% if article.main_image %}
-                            <div class="col-md-5">
-                                <a href="{% url 'others:article-detail' article.pk %}">
-                                    <img src="{{ article.main_image.url }}" class="img-fluid rounded-start h-100" 
-                                         alt="{{ article.title }}" style="object-fit: cover; height: 200px; width: 100%;">
-                                </a>
-                            </div>
-                            {% endif %}
-                            <div class="col-md-{% if article.main_image %}7{% else %}12{% endif %}">
-                                <div class="card-body d-flex flex-column h-100">
-                                    <h5 class="card-title">
-                                        <a href="{% url 'others:article-detail' article.pk %}" class="text-decoration-none text-dark">
-                                            {{ article.title }}
-                                        </a>
-                                    </h5>
-                                    <p class="card-text text-muted flex-grow-1">
-                                        {{ article.content|striptags|truncatewords:25 }}
-                                    </p>
-                                    <div class="mt-auto">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <small class="text-muted">
-                                                <i class="fas fa-user me-1"></i>{{ article.author.username }}
-                                            </small>
-                                            <small class="text-muted">
-                                                <i class="fas fa-calendar me-1"></i>{{ article.published_at|date:"d.m.Y" }}
-                                            </small>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center mt-2">
-                                            <small class="text-muted">
-                                                <i class="fas fa-eye me-1"></i>{{ article.views_count }} просмотров
-                                            </small>
-                                            <a href="{% url 'others:article-detail' article.pk %}" class="btn btn-sm btn-outline-success">
-                                                Читать далее
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-newspaper fa-4x text-muted mb-3"></i>
-                <h4 class="text-muted">Пока нет статей</h4>
-                <p class="text-muted">Статьи появятся здесь в ближайшее время</p>
-                {% if not user.is_staff %}
-                <a href="{% url 'others:propose-article' %}" class="btn btn-success mt-3">
-                    <i class="fas fa-lightbulb me-1"></i>Стать первым автором
-                </a>
-                {% endif %}
-            </div>
-            {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
 
 <style>
 .article-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .article-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(25, 135, 84, 0.15);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
 }
 
-.card-title a:hover {
-    color: #198754 !important;
+.card-img-top {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
 }
 </style>
 {% endblock %}

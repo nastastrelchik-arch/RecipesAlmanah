@@ -21,7 +21,7 @@ def articles_list(request):
 
 def article_detail(request, pk):
     """Детальная страница статьи"""
-    article = get_object_or_404(Article, pk=pk)
+    article = get_object_or_404(Article.objects.prefetch_related('additional_images'), pk=pk)
 
     # Проверяем доступ к статье
     if article.status != 'published' and not (request.user.is_staff or request.user == article.author):
@@ -34,7 +34,6 @@ def article_detail(request, pk):
 
     return render(request, 'others/article_detail.html', {'article': article})
 
-
 @user_passes_test(lambda u: u.is_staff)
 def create_article(request):
     """Создание статьи (только для админов)"""
@@ -44,7 +43,7 @@ def create_article(request):
             article = form.save(commit=False)
             article.author = request.user
             article.save()
-            form.save_m2m()  # для ManyToMany поля hashtags
+            # УБИРАЕМ form.save_m2m() так как больше нет ManyToMany поля
 
             # Обрабатываем дополнительные изображения
             additional_images = request.FILES.getlist('additional_images')
@@ -69,6 +68,7 @@ def edit_article(request, pk):
         form = ArticleForm(request.POST, request.FILES, instance=article)
         if form.is_valid():
             form.save()
+            # УБИРАЕМ form.save_m2m() так как больше нет ManyToMany поля
 
             # Обрабатываем дополнительные изображения
             additional_images = request.FILES.getlist('additional_images')
@@ -83,7 +83,6 @@ def edit_article(request, pk):
     else:
         form = ArticleForm(instance=article)
     return render(request, 'others/article_form.html', {'form': form})
-
 
 @user_passes_test(lambda u: u.is_staff)
 def delete_article_image(request, pk):
@@ -130,7 +129,7 @@ def propose_article(request):
 
     return render(request, 'others/propose_article.html', {
         'form': form,
-        'admin_email': getattr(settings, 'ADMIN_CONTACT_EMAIL', 'recipes@example.com')
+        'admin_email': getattr(settings, 'ADMIN_CONTACT_EMAIL', 'promya49@gmail.com')
     })
 
 
@@ -182,10 +181,9 @@ def create_article_from_proposal(request, pk):
         if article_form.is_valid():
             article = article_form.save(commit=False)
             article.author = request.user
-            article.suggested_by = None  # Можно сохранить связь, если есть пользователь
+            article.suggested_by = None
             article.status = 'published'
             article.save()
-            article_form.save_m2m()
 
             # Помечаем предложение как одобренное
             proposal.status = 'approved'
@@ -209,7 +207,6 @@ def create_article_from_proposal(request, pk):
         'article_form': article_form,
     }
     return render(request, 'others/create_article_from_proposal.html', context)
-
 
 @login_required
 def recommendations_list(request):

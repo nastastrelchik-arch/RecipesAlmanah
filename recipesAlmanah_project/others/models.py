@@ -138,7 +138,7 @@ class Article(models.Model):
     ]
 
     title = models.CharField(max_length=200, verbose_name="Заголовок")
-    content = models.TextField(verbose_name="Содержание", blank=True)  # делаем необязательным
+    content = models.TextField(verbose_name="Содержание", blank=True)
     article_type = models.CharField(
         max_length=20,
         choices=ARTICLE_TYPES,
@@ -148,7 +148,7 @@ class Article(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Автор", related_name='articles')
     published_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата публикации")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-    hashtags = models.ManyToManyField(Hashtag, blank=True, verbose_name="Хештеги", related_name='articles')
+    # УБИРАЕМ поле hashtags
     main_image = models.ImageField(
         upload_to='articles/images/',
         blank=True,

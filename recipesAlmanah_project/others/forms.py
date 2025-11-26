@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 class ArticleForm(forms.ModelForm):
     class Meta:
         model = Article
-        fields = ['title', 'article_type', 'content', 'main_image', 'hashtags', 'status']
+        fields = ['title', 'article_type', 'content', 'main_image', 'status']  # Убрали hashtags
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -24,9 +24,6 @@ class ArticleForm(forms.ModelForm):
                 'class': 'form-control article-main-image',
                 'accept': 'image/*'
             }),
-            'hashtags': forms.SelectMultiple(attrs={
-                'class': 'form-control'
-            }),
             'status': forms.Select(attrs={
                 'class': 'form-control'
             }),
@@ -36,7 +33,6 @@ class ArticleForm(forms.ModelForm):
             'article_type': 'Тип статьи',
             'content': 'Содержание',
             'main_image': 'Главное изображение',
-            'hashtags': 'Хештеги',
             'status': 'Статус',
         }
 

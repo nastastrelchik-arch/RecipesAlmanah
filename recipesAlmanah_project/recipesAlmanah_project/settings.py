@@ -36,7 +36,7 @@ CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
 # Application definition
 
 # Контактная информация для статей
-ADMIN_CONTACT_EMAIL = 'promya49@gmail.com'  # Замените на реальный email
+ADMIN_CONTACT_EMAIL = 'promya49@gmail.com'
 
 # Настройки почты (если хотите отправлять уведомления)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

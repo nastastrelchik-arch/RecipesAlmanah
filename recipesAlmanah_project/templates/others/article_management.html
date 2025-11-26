@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Управление статьями - Кулинарный сайт{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-cog me-2"></i>Управление статьями</h1>
+                <a href="{% url 'others:create-article' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Создать статью
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3>{{ articles.count }}</h3>
+                    <p class="text-muted mb-0">Всего статей</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ pending_articles.count }}</h3>
+                    <p class="text-muted mb-0">На рассмотрении</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-secondary">{{ draft_articles.count }}</h3>
+                    <p class="text-muted mb-0">Черновики</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <!-- ИСПРАВЛЕННАЯ СТРОКА: используем правильный фильтр -->
+                    <h3 class="text-success">{{ articles|length }}</h3>
+                    <p class="text-muted mb-0">Опубликовано</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица статей -->
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="articlesTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                        Все статьи ({{ articles.count }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                        На рассмотрении ({{ pending_articles.count }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="draft-tab" data-bs-toggle="tab" data-bs-target="#draft" type="button" role="tab">
+                        Черновики ({{ draft_articles.count }})
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body">
+            <div class="tab-content" id="articlesTabsContent">
+                <!-- Все статьи -->
+                <div class="tab-pane fade show active" id="all" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Заголовок</th>
+                                    <th>Тип</th>
+                                    <th>Автор</th>
+                                    <th>Дата</th>
+                                    <th>Статус</th>
+                                    <th>Просмотры</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for article in articles %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ article.title }}</strong>
+                                        {% if article.main_image %}
+                                        <i class="fas fa-image text-muted ms-1" title="Есть изображение"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if article.article_type == 'text_only' %}
+                                        <span class="badge bg-primary">Текст</span>
+                                        {% elif article.article_type == 'photo_only' %}
+                                        <span class="badge bg-success">Фото</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Смешанный</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ article.author.username }}</td>
+                                    <td>{{ article.published_at|date:"d.m.Y" }}</td>
+                                    <td>
+                                        {% if article.status == 'published' %}
+                                        <span class="badge bg-success">Опубликовано</span>
+                                        {% elif article.status == 'draft' %}
+                                        <span class="badge bg-secondary">Черновик</span>
+                                        {% elif article.status == 'pending_review' %}
+                                        <span class="badge bg-warning">На рассмотрении</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Отклонено</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ article.views_count }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'others:article-detail' article.pk %}" class="btn btn-outline-info" title="Просмотр">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'others:edit-article' article.pk %}" class="btn btn-outline-primary" title="Редактировать">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-3">
+                                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                                        <p>Статьи не найдены</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Статьи на рассмотрении -->
+                <div class="tab-pane fade" id="pending" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Заголовок</th>
+                                    <th>Тип</th>
+                                    <th>Автор</th>
+                                    <th>Дата</th>
+                                    <th>Просмотры</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for article in pending_articles %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ article.title }}</strong>
+                                        {% if article.main_image %}
+                                        <i class="fas fa-image text-muted ms-1" title="Есть изображение"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if article.article_type == 'text_only' %}
+                                        <span class="badge bg-primary">Текст</span>
+                                        {% elif article.article_type == 'photo_only' %}
+                                        <span class="badge bg-success">Фото</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Смешанный</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ article.author.username }}</td>
+                                    <td>{{ article.published_at|date:"d.m.Y" }}</td>
+                                    <td>{{ article.views_count }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'others:article-detail' article.pk %}" class="btn btn-outline-info" title="Просмотр">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'others:edit-article' article.pk %}" class="btn btn-outline-primary" title="Редактировать">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-3">
+                                        <i class="fas fa-hourglass-half fa-2x mb-2"></i>
+                                        <p>Нет статей на рассмотрении</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Черновики -->
+                <div class="tab-pane fade" id="draft" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Заголовок</th>
+                                    <th>Тип</th>
+                                    <th>Автор</th>
+                                    <th>Дата</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for article in draft_articles %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ article.title }}</strong>
+                                        {% if article.main_image %}
+                                        <i class="fas fa-image text-muted ms-1" title="Есть изображение"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if article.article_type == 'text_only' %}
+                                        <span class="badge bg-primary">Текст</span>
+                                        {% elif article.article_type == 'photo_only' %}
+                                        <span class="badge bg-success">Фото</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Смешанный</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ article.author.username }}</td>
+                                    <td>{{ article.published_at|date:"d.m.Y" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'others:edit-article' article.pk %}" class="btn btn-outline-primary" title="Редактировать">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-3">
+                                        <i class="fas fa-edit fa-2x mb-2"></i>
+                                        <p>Нет черновиков</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    background-color: transparent;
+    border-bottom: 2px solid #0d6efd;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Активация табов при загрузке страницы
+    const triggerTabList = [].slice.call(document.querySelectorAll('#articlesTabs button'));
+    triggerTabList.forEach(function (triggerEl) {
+        const tabTrigger = new bootstrap.Tab(triggerEl);
+
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault();
+            tabTrigger.show();
+        });
+    });
+});
+</script>
+{% endblock %}
