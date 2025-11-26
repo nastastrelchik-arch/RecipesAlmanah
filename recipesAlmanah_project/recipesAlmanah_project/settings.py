@@ -35,6 +35,19 @@ LOGOUT_REDIRECT_URL = 'recipes:home' # куда перенаправка пос�
 CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
 # Application definition
 
+# Контактная информация для статей
+ADMIN_CONTACT_EMAIL = 'promya49@gmail.com'  # Замените на реальный email
+
+# Настройки почты (если хотите отправлять уведомления)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.your-email-provider.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'promya49@gmail.com'
+EMAIL_HOST_PASSWORD = 'Wattpad1'
+DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com'
+ADMIN_EMAIL = 'promya49@gmail.com'  # Для уведомлений о новых предложениях
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -70,6 +83,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+
                 'django.template.context_processors.request',
                 'django.template.context_processors.debug',
                 'django.contrib.auth.context_processors.auth',

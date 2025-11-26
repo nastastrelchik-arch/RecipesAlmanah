@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from recipes.models import Hashtag, Recipe
 from django.core.cache import cache
 from django.db.models import Count, Q
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 class StatisticsManager(models.Manager):
@@ -122,17 +122,43 @@ class StatisticsManager(models.Manager):
             'most_commented': list(most_commented),
         }
 
+
 class Article(models.Model):
+    ARTICLE_STATUS = [
+        ('draft', 'Черновик'),
+        ('published', 'Опубликовано'),
+        ('rejected', 'Отклонено'),
+        ('pending_review', 'На рассмотрении'),
+    ]
+
+    ARTICLE_TYPES = [
+        ('text_only', 'Только текст'),
+        ('photo_only', 'Только фотографии'),
+        ('mixed', 'Текст и фотографии'),
+    ]
+
     title = models.CharField(max_length=200, verbose_name="Заголовок")
-    content = models.TextField(verbose_name="Содержание")
+    content = models.TextField(verbose_name="Содержание", blank=True)  # делаем необязательным
+    article_type = models.CharField(
+        max_length=20,
+        choices=ARTICLE_TYPES,
+        default='mixed',
+        verbose_name="Тип статьи"
+    )
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Автор", related_name='articles')
     published_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата публикации")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
     hashtags = models.ManyToManyField(Hashtag, blank=True, verbose_name="Хештеги", related_name='articles')
-    main_image = models.ImageField(upload_to='articles/images/', blank=True, null=True,
-                                   verbose_name="Главное изображение")
-    is_published = models.BooleanField(default=True, verbose_name="Опубликовано")
+    main_image = models.ImageField(
+        upload_to='articles/images/',
+        blank=True,
+        null=True,
+        verbose_name="Главное изображение"
+    )
+    status = models.CharField(max_length=20, choices=ARTICLE_STATUS, default='draft', verbose_name="Статус")
     views_count = models.PositiveIntegerField(default=0, verbose_name="Количество просмотров")
+    suggested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                     verbose_name="Предложено пользователем", related_name='suggested_articles')
 
     class Meta:
         verbose_name = "Статья"
@@ -141,6 +167,100 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def is_published(self):
+        return self.status == 'published'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('others:article-detail', kwargs={'pk': self.pk})
+
+    def clean(self):
+        """Валидация в зависимости от типа статьи"""
+        from django.core.exceptions import ValidationError
+
+        if self.article_type == 'text_only' and not self.content.strip():
+            raise ValidationError({
+                'content': 'Для текстовой статьи необходимо заполнить содержание'
+            })
+
+        if self.article_type == 'photo_only' and not self.main_image:
+            raise ValidationError({
+                'main_image': 'Для фото-статьи необходимо загрузить главное изображение'
+            })
+
+        if self.article_type == 'mixed' and not self.content.strip() and not self.main_image:
+            raise ValidationError({
+                'content': 'Для смешанной статьи необходимо заполнить содержание или загрузить изображение',
+                'main_image': 'Для смешанной статьи необходимо заполнить содержание или загрузить изображение'
+            })
+
+
+class ArticleImage(models.Model):
+    """Дополнительные изображения для статьи"""
+    article = models.ForeignKey(
+        Article,
+        on_delete=models.CASCADE,
+        related_name='additional_images',
+        verbose_name="Статья"
+    )
+    image = models.ImageField(
+        upload_to='articles/gallery/%Y/%m/%d/',
+        verbose_name="Изображение"
+    )
+    caption = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Подпись к изображению"
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Порядок отображения"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
+
+    class Meta:
+        verbose_name = "Изображение статьи"
+        verbose_name_plural = "Изображения статей"
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return f"Изображение для {self.article.title}"
+
+class ArticleProposal(models.Model):
+    """Модель для предложений статей от пользователей"""
+    title = models.CharField(max_length=200, verbose_name="Заголовок предложения")
+    content = models.TextField(verbose_name="Содержание предложения")
+    author_name = models.CharField(max_length=100, verbose_name="Имя автора")
+    author_email = models.EmailField(verbose_name="Email автора")
+    contact_phone = models.CharField(max_length=20, blank=True, verbose_name="Телефон для связи")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата предложения")
+    status = models.CharField(max_length=20, choices=[
+        ('pending', 'На рассмотрении'),
+        ('approved', 'Одобрено'),
+        ('rejected', 'Отклонено'),
+    ], default='pending', verbose_name="Статус")
+    admin_notes = models.TextField(blank=True, verbose_name="Заметки администратора")
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                  verbose_name="Рассмотрено администратором")
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="Дата рассмотрения")
+
+    class Meta:
+        verbose_name = "Предложение статьи"
+        verbose_name_plural = "Предложения статей"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Предложение: {self.title}"
+
+    def mark_reviewed(self, user, status, notes=''):
+        """Пометить предложение как рассмотренное"""
+        self.status = status
+        self.admin_notes = notes
+        self.reviewed_by = user
+        self.reviewed_at = timezone.now()
+        self.save()
 
 
 class RecommendationManager(models.Manager):

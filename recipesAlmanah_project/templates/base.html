@@ -125,4 +125,40 @@
 
     {% block extra_js %}{% endblock %}
 </body>
+<!-- Подвал сайта -->
+<footer class="bg-dark text-light py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="text-success">
+                    <i class="fas fa-utensils me-2"></i>Кулинарный альманах
+                </h5>
+                <p class="mb-0">Лучшие рецепты и статьи о кулинарии</p>
+                <small class="text-muted">Делитесь рецептами, находите вдохновение, становитесь шеф-поваром!</small>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <h6 class="text-success">Свяжитесь с нами</h6>
+                <p class="mb-2">
+                    <i class="fas fa-envelope me-2"></i>
+                    <a href="mailto:{{ admin_email|default:'recipes@example.com' }}" class="text-light text-decoration-none">
+                        {{ admin_email|default:'recipes@example.com' }}
+                    </a>
+                </p>
+                <a href="{% url 'others:propose-article' %}" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-lightbulb me-1"></i>Предложить статью
+                </a>
+            </div>
+        </div>
+        <hr class="my-3 bg-light">
+        <div class="row">
+            <div class="col-12 text-center">
+                <small class="text-muted">
+                    &copy; 2024 Кулинарный альманах. Все права защищены.
+                    <a href="{% url 'others:articles-list' %}" class="text-muted text-decoration-none ms-2">Статьи</a>
+                    <a href="{% url 'others:public-statistics' %}" class="text-muted text-decoration-none ms-2">Статистика</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</footer>
 </html>

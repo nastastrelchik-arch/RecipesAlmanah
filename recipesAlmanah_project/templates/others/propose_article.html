@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Предложить статью - Кулинарный сайт{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        Предложить статью
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Как это работает?</h6>
+                        <p class="mb-0">
+                            Расскажите нам о своей идее статьи. Наша редакция рассмотрит ваше предложение
+                            и свяжется с вами по указанному email.
+                        </p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <div class="text-danger small">{{ field.errors }}</div>
+                            {% endif %}
+                            {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'others:articles-list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Назад к статьям
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-paper-plane me-1"></i>Отправить предложение
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Контактная информация -->
+            <div class="card mt-4 border-info">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-info">
+                        <i class="fas fa-envelope me-2"></i>Контактная информация
+                    </h6>
+                    <p class="card-text mb-1">
+                        <strong>Email редакции:</strong>
+                        <a href="mailto:{{ admin_email }}" class="text-decoration-none">{{ admin_email }}</a>
+                    </p>
+                    <small class="text-muted">
+                        По всем вопросам сотрудничества обращайтесь на указанную почту
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.form-control:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #198754 0%, #157347 100%);
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #157347 0%, #0f5132 100%);
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

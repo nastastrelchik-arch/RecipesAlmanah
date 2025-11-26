@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Редактировать статью{% else %}Создать статью{% endif %} - Кулинарный сайт
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas {% if form.instance.pk %}fa-edit{% else %}fa-plus-circle{% endif %} me-2"></i>
+                        {% if form.instance.pk %}Редактировать статью{% else %}Создать новую статью{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if not form.instance.pk %}
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Создание статьи</h6>
+                        <p class="mb-0">
+                            Выберите тип статьи и заполните соответствующие поля. Статья может содержать только текст,
+                            только фотографии или комбинацию обоих элементов.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" id="article-form">
+                        {% csrf_token %}
+
+                        <!-- Заголовок (всегда обязателен) -->
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">
+                                {{ form.title.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                            <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Тип статьи -->
+                        <div class="mb-4">
+                            <label for="{{ form.article_type.id_for_label }}" class="form-label">
+                                Тип статьи <span class="text-danger">*</span>
+                            </label>
+                            {{ form.article_type }}
+                            {% if form.article_type.errors %}
+                            <div class="text-danger small mt-1">{{ form.article_type.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Содержание (условно обязательное) -->
+                        <div class="mb-3 article-field" id="content-field">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">
+                                {{ form.content.label }}
+                                <span class="text-danger required-indicator">*</span>
+                                <span class="text-muted small">(обязательно для текстовых статей)</span>
+                            </label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                            <div class="text-danger small mt-1">{{ form.content.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Используйте Markdown для форматирования текста. Поддерживаются заголовки, списки, жирный и курсивный текст.
+                            </div>
+                        </div>
+
+                        <!-- Главное изображение (условно обязательное) -->
+                        <div class="mb-3 article-field" id="main-image-field">
+                            <label for="{{ form.main_image.id_for_label }}" class="form-label">
+                                {{ form.main_image.label }}
+                                <span class="text-danger required-indicator">*</span>
+                                <span class="text-muted small">(обязательно для фото-статей)</span>
+                            </label>
+
+                            {% if form.instance.main_image %}
+                                <div class="current-image mb-2">
+                                    <img src="{{ form.instance.main_image.url }}" alt="Текущее изображение"
+                                         class="img-thumbnail" style="max-height: 200px;">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="main_image-clear" id="main_image-clear_id">
+                                        <label class="form-check-label" for="main_image-clear_id">
+                                            Удалить текущее изображение
+                                        </label>
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block">Новое изображение заменит текущее:</small>
+                            {% endif %}
+
+                            {{ form.main_image }}
+                            {% if form.main_image.errors %}
+                            <div class="text-danger small mt-1">{{ form.main_image.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Рекомендуемое соотношение: 16:9. Максимальный размер: 5MB.
+                            </div>
+                        </div>
+
+                        <!-- Дополнительные изображения -->
+                        <div class="mb-3 article-field" id="additional-images-field">
+                            <label for="additional_images" class="form-label">
+                                Дополнительные изображения
+                            </label>
+                            <input type="file" name="additional_images" multiple
+                                   class="form-control" accept="image/*"
+                                   id="additional_images">
+                            <div class="form-text">
+                                Вы можете выбрать несколько изображений. Они будут отображаться в галерее статьи.
+                            </div>
+
+                            <!-- Галерея существующих дополнительных изображений -->
+                            {% if form.instance.pk and form.instance.additional_images.exists %}
+                            <div class="existing-images mt-3">
+                                <h6 class="text-muted">Существующие изображения:</h6>
+                                <div class="row">
+                                    {% for article_image in form.instance.additional_images.all %}
+                                    <div class="col-md-3 mb-2">
+                                        <div class="image-thumbnail position-relative">
+                                            <img src="{{ article_image.image.url }}"
+                                                 alt="{{ article_image.caption|default:'Изображение статьи' }}"
+                                                 class="img-thumbnail w-100" style="height: 100px; object-fit: cover;">
+                                            <small class="d-block text-center">{{ article_image.caption|default:"Без подписи" }}</small>
+                                            <a href="{% url 'others:delete-article-image' article_image.pk %}"
+                                               class="btn btn-sm btn-danger position-absolute top-0 end-0"
+                                               onclick="return confirm('Удалить это изображение?')">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Хештеги -->
+                        <div class="mb-3">
+                            <label for="{{ form.hashtags.id_for_label }}" class="form-label">
+                                {{ form.hashtags.label }}
+                            </label>
+                            {{ form.hashtags }}
+                            {% if form.hashtags.errors %}
+                            <div class="text-danger small mt-1">{{ form.hashtags.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Статус -->
+                        <div class="mb-4">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                {{ form.status.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                            <div class="text-danger small mt-1">{{ form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <a href="{% if form.instance.pk %}{% url 'others:article-detail' form.instance.pk %}{% else %}{% url 'others:articles-list' %}{% endif %}"
+                               class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                {% if form.instance.pk %}Вернуться к статье{% else %}Отмена{% endif %}
+                            </a>
+
+                            <div class="btn-group">
+                                {% if form.instance.pk %}
+                                    <a href="{% url 'others:article-detail' form.instance.pk %}"
+                                       class="btn btn-outline-info">
+                                        <i class="fas fa-eye me-1"></i>Просмотр
+                                    </a>
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>
+                                    {% if form.instance.pk %}Сохранить изменения{% else %}Создать статью{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Подсказки по типам статей -->
+            <div class="card mt-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>Пояснения по типам статей
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="text-primary"><i class="fas fa-font me-1"></i>Только текст</h6>
+                            <p class="small text-muted">
+                                Идеально для рецептов, инструкций, рассказов. Требуется текстовое содержание.
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-success"><i class="fas fa-camera me-1"></i>Только фотографии</h6>
+                            <p class="small text-muted">
+                                Для фото-рецептов, галерей, визуальных историй. Требуется главное изображение.
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-warning"><i class="fas fa-images me-1"></i>Текст и фотографии</h6>
+                            <p class="small text-muted">
+                                Универсальный формат. Требуется либо текст, либо изображение (или оба).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.article-content {
+    min-height: 300px;
+    resize: vertical;
+}
+
+.article-field {
+    transition: all 0.3s ease;
+}
+
+.required-indicator {
+    display: none;
+}
+
+.field-required .required-indicator {
+    display: inline;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 10px 20px;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
+    transform: translateY(-1px);
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+    padding: 1rem 1.5rem;
+}
+
+.image-thumbnail {
+    transition: transform 0.2s ease;
+}
+
+.image-thumbnail:hover {
+    transform: scale(1.05);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const articleTypeSelect = document.getElementById('{{ form.article_type.id_for_label }}');
+    const contentField = document.getElementById('content-field');
+    const mainImageField = document.getElementById('main-image-field');
+    const additionalImagesField = document.getElementById('additional-images-field');
+    const form = document.getElementById('article-form');
+
+    function updateFieldRequirements() {
+        const articleType = articleTypeSelect.value;
+
+        // Сбрасываем все требования
+        contentField.classList.remove('field-required');
+        mainImageField.classList.remove('field-required');
+
+        // Показываем/скрываем поля в зависимости от типа статьи
+        switch(articleType) {
+            case 'text_only':
+                contentField.style.display = 'block';
+                mainImageField.style.display = 'none';
+                additionalImagesField.style.display = 'none';
+                contentField.classList.add('field-required');
+                break;
+
+            case 'photo_only':
+                contentField.style.display = 'none';
+                mainImageField.style.display = 'block';
+                additionalImagesField.style.display = 'block';
+                mainImageField.classList.add('field-required');
+                break;
+
+            case 'mixed':
+                contentField.style.display = 'block';
+                mainImageField.style.display = 'block';
+                additionalImagesField.style.display = 'block';
+                // Для смешанного типа ни одно поле не обязательно, но нужно хотя бы одно
+                break;
+        }
+    }
+
+    // Обработчик изменения типа статьи
+    articleTypeSelect.addEventListener('change', updateFieldRequirements);
+
+    // Инициализация при загрузке
+    updateFieldRequirements();
+
+    // Валидация формы
+    form.addEventListener('submit', function(e) {
+        const articleType = articleTypeSelect.value;
+        const content = document.getElementById('{{ form.content.id_for_label }}').value.trim();
+        const mainImage = document.getElementById('{{ form.main_image.id_for_label }}').files[0];
+        const hasExistingMainImage = {{ form.instance.main_image|yesno:"true,false" }};
+
+        let isValid = true;
+        let errorMessage = '';
+
+        if (articleType === 'text_only' && !content) {
+            isValid = false;
+            errorMessage = 'Для текстовой статьи необходимо заполнить содержание.';
+        } else if (articleType === 'photo_only' && !mainImage && !hasExistingMainImage) {
+            isValid = false;
+            errorMessage = 'Для фото-статьи необходимо загрузить главное изображение.';
+        } else if (articleType === 'mixed' && !content && !mainImage && !hasExistingMainImage) {
+            isValid = false;
+            errorMessage = 'Для смешанной статьи необходимо заполнить содержание ИЛИ загрузить изображение.';
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            alert(errorMessage);
+        }
+    });
+
+    // Подсветка активного типа статьи
+    const typeOptions = articleTypeSelect.querySelectorAll('option');
+    articleTypeSelect.addEventListener('change', function() {
+        typeOptions.forEach(opt => {
+            const optionDiv = document.querySelector(`.article-type-option[data-value="${opt.value}"]`);
+            if (optionDiv) {
+                optionDiv.classList.remove('active', 'bg-primary', 'text-white');
+                if (opt.selected) {
+                    optionDiv.classList.add('active', 'bg-primary', 'text-white');
+                }
+            }
+        });
+    });
+
+    // Показ предупреждения при удалении изображения
+    const deleteButtons = document.querySelectorAll('.btn-danger');
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            if (!confirm('Вы уверены, что хотите удалить это изображение?')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

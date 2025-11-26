@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление изображения - Кулинарный сайт{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Подтверждение удаления
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <h5>Вы уверены, что хотите удалить это изображение?</h5>
+                    
+                    {% if article_image.image %}
+                    <div class="my-4">
+                        <img src="{{ article_image.image.url }}" 
+                             alt="{{ article_image.caption|default:'Изображение статьи' }}"
+                             class="img-thumbnail" style="max-height: 200px;">
+                    </div>
+                    {% endif %}
+                    
+                    <p class="text-muted">
+                        Это действие нельзя отменить. Изображение будет удалено из статьи 
+                        "{{ article_image.article.title }}".
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'others:edit-article' article_image.article.pk %}" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Отмена
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>Удалить изображение
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

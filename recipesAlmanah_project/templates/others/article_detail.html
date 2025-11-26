@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ article.title }} - Кулинарный сайт{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Хлебные крошки -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'recipes:home' %}">Главная</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'others:articles-list' %}">Статьи</a></li>
+                    <li class="breadcrumb-item active">{{ article.title|truncatewords:5 }}</li>
+                </ol>
+            </nav>
+
+            <!-- Статья -->
+            <article class="card border-0 shadow-sm">
+                {% if article.main_image %}
+                <img src="{{ article.main_image.url }}" class="card-img-top article-main-image" alt="{{ article.title }}">
+                {% endif %}
+                
+                <div class="card-body p-4">
+                    <!-- Заголовок и мета-информация -->
+                    <header class="mb-4">
+                        <h1 class="display-6 fw-bold text-success mb-3">{{ article.title }}</h1>
+                        <div class="d-flex flex-wrap align-items-center text-muted mb-3">
+                            <div class="me-4">
+                                <i class="fas fa-user me-1"></i>
+                                <span class="fw-medium">{{ article.author.username }}</span>
+                            </div>
+                            <div class="me-4">
+                                <i class="fas fa-calendar me-1"></i>
+                                <span>{{ article.published_at|date:"d.m.Y" }}</span>
+                            </div>
+                            <div class="me-4">
+                                <i class="fas fa-eye me-1"></i>
+                                <span>{{ article.views_count }} просмотров</span>
+                            </div>
+                            {% if user.is_staff %}
+                            <div class="ms-auto">
+                                <span class="badge bg-{% if article.status == 'published' %}success{% elif article.status == 'draft' %}warning text-dark{% else %}secondary{% endif %}">
+                                    {{ article.get_status_display }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Хештеги -->
+                        {% if article.hashtags.all %}
+                        <div class="hashtags mb-3">
+                            {% for hashtag in article.hashtags.all %}
+                            <span class="badge bg-light text-dark border me-1">#{{ hashtag.name }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </header>
+
+                    <!-- Содержание статьи -->
+                    <div class="article-content">
+                        {{ article.content|linebreaks }}
+                    </div>
+
+                    <!-- Кнопки действий -->
+                    <footer class="mt-5 pt-4 border-top">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'others:articles-list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Назад к статьям
+                            </a>
+                            
+                            {% if user.is_staff %}
+                            <div>
+                                <a href="{% url 'others:edit-article' article.pk %}" class="btn btn-outline-success me-2">
+                                    <i class="fas fa-edit me-1"></i>Редактировать
+                                </a>
+                                <a href="{% url 'others:article-management' %}" class="btn btn-success">
+                                    <i class="fas fa-cog me-1"></i>Управление
+                                </a>
+                            </div>
+                            {% else %}
+                            <a href="{% url 'others:propose-article' %}" class="btn btn-success">
+                                <i class="fas fa-lightbulb me-1"></i>Предложить свою статью
+                            </a>
+                            {% endif %}
+                        </div>
+                    </footer>
+                </div>
+            </article>
+        </div>
+    </div>
+</div>
+
+<style>
+.article-main-image {
+    max-height: 500px;
+    object-fit: cover;
+    border-radius: 12px 12px 0 0;
+}
+
+.article-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #333;
+}
+
+.article-content p {
+    margin-bottom: 1.5rem;
+}
+
+.article-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: #198754;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}

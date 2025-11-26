@@ -1,30 +1,43 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from .models import Article, Recommendation, Statistic
-from .forms import ArticleForm
+from .models import Article, Recommendation, Statistic, ArticleProposal, ArticleImage
+from .forms import ArticleForm, ArticleProposalForm, ArticleProposalReviewForm
 from recipes.models import Hashtag, Recipe
 from users.models import User
 from django.db.models import Count, Q
 import json
 from datetime import datetime, timedelta
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
 
 
 def articles_list(request):
-    articles = Article.objects.filter(is_published=True).order_by('-published_at')
+    """Список опубликованных статей"""
+    articles = Article.objects.filter(status='published').order_by('-published_at')
     return render(request, 'others/articles_list.html', {'articles': articles})
 
 
 def article_detail(request, pk):
-    article = get_object_or_404(Article, pk=pk, is_published=True)
+    """Детальная страница статьи"""
+    article = get_object_or_404(Article, pk=pk)
+
+    # Проверяем доступ к статье
+    if article.status != 'published' and not (request.user.is_staff or request.user == article.author):
+        messages.error(request, 'Эта статья недоступна для просмотра.')
+        return redirect('others:articles-list')
+
     # Увеличиваем счетчик просмотров
     article.views_count += 1
     article.save()
+
     return render(request, 'others/article_detail.html', {'article': article})
 
 
-@login_required
+@user_passes_test(lambda u: u.is_staff)
 def create_article(request):
+    """Создание статьи (только для админов)"""
     if request.method == 'POST':
         form = ArticleForm(request.POST, request.FILES)
         if form.is_valid():
@@ -32,6 +45,15 @@ def create_article(request):
             article.author = request.user
             article.save()
             form.save_m2m()  # для ManyToMany поля hashtags
+
+            # Обрабатываем дополнительные изображения
+            additional_images = request.FILES.getlist('additional_images')
+            for image_file in additional_images:
+                ArticleImage.objects.create(
+                    article=article,
+                    image=image_file
+                )
+
             messages.success(request, 'Статья успешно создана!')
             return redirect('others:article-detail', pk=article.pk)
     else:
@@ -39,13 +61,23 @@ def create_article(request):
     return render(request, 'others/article_form.html', {'form': form})
 
 
-@login_required
+@user_passes_test(lambda u: u.is_staff)
 def edit_article(request, pk):
-    article = get_object_or_404(Article, pk=pk, author=request.user)
+    """Редактирование статьи (только для админов)"""
+    article = get_object_or_404(Article, pk=pk)
     if request.method == 'POST':
         form = ArticleForm(request.POST, request.FILES, instance=article)
         if form.is_valid():
             form.save()
+
+            # Обрабатываем дополнительные изображения
+            additional_images = request.FILES.getlist('additional_images')
+            for image_file in additional_images:
+                ArticleImage.objects.create(
+                    article=article,
+                    image=image_file
+                )
+
             messages.success(request, 'Статья успешно обновлена!')
             return redirect('others:article-detail', pk=article.pk)
     else:
@@ -53,10 +85,135 @@ def edit_article(request, pk):
     return render(request, 'others/article_form.html', {'form': form})
 
 
+@user_passes_test(lambda u: u.is_staff)
+def delete_article_image(request, pk):
+    """Удаление дополнительного изображения статьи"""
+    article_image = get_object_or_404(ArticleImage, pk=pk)
+    article_pk = article_image.article.pk
+
+    if request.method == 'POST':
+        article_image.delete()
+        messages.success(request, 'Изображение успешно удалено.')
+        return redirect('others:edit-article', pk=article_pk)
+
+    # Если GET запрос, показываем страницу подтверждения
+    return render(request, 'others/confirm_delete_image.html', {
+        'article_image': article_image
+    })
+
+
+@user_passes_test(lambda u: u.is_staff)
+def article_management(request):
+    """Управление статьями для админов"""
+    articles = Article.objects.all().order_by('-published_at')
+    pending_articles = Article.objects.filter(status='pending_review')
+    draft_articles = Article.objects.filter(status='draft')
+
+    context = {
+        'articles': articles,
+        'pending_articles': pending_articles,
+        'draft_articles': draft_articles,
+    }
+    return render(request, 'others/article_management.html', context)
+
+
+def propose_article(request):
+    """Форма предложения статьи от пользователей"""
+    if request.method == 'POST':
+        form = ArticleProposalForm(request.POST)
+        if form.is_valid():
+            proposal = form.save()
+            messages.success(request, 'Ваше предложение успешно отправлено! Мы свяжемся с вами в ближайшее время.')
+            return redirect('others:articles-list')
+    else:
+        form = ArticleProposalForm()
+
+    return render(request, 'others/propose_article.html', {
+        'form': form,
+        'admin_email': getattr(settings, 'ADMIN_CONTACT_EMAIL', 'recipes@example.com')
+    })
+
+
+@user_passes_test(lambda u: u.is_staff)
+def article_proposals_list(request):
+    """Список предложений статей для админов"""
+    proposals = ArticleProposal.objects.all().order_by('-created_at')
+    pending_proposals = proposals.filter(status='pending')
+
+    context = {
+        'proposals': proposals,
+        'pending_proposals': pending_proposals,
+    }
+    return render(request, 'others/article_proposals_list.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def review_article_proposal(request, pk):
+    """Просмотр и решение по предложению статьи"""
+    proposal = get_object_or_404(ArticleProposal, pk=pk)
+
+    if request.method == 'POST':
+        form = ArticleProposalReviewForm(request.POST, instance=proposal)
+        if form.is_valid():
+            proposal = form.save(commit=False)
+            proposal.reviewed_by = request.user
+            proposal.reviewed_at = timezone.now()
+            proposal.save()
+
+            messages.success(request, f'Предложение "{proposal.title}" рассмотрено.')
+            return redirect('others:article-proposals-list')
+    else:
+        form = ArticleProposalReviewForm(instance=proposal)
+
+    context = {
+        'proposal': proposal,
+        'form': form,
+    }
+    return render(request, 'others/review_article_proposal.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def create_article_from_proposal(request, pk):
+    """Создание статьи на основе предложения"""
+    proposal = get_object_or_404(ArticleProposal, pk=pk)
+
+    if request.method == 'POST':
+        article_form = ArticleForm(request.POST, request.FILES)
+        if article_form.is_valid():
+            article = article_form.save(commit=False)
+            article.author = request.user
+            article.suggested_by = None  # Можно сохранить связь, если есть пользователь
+            article.status = 'published'
+            article.save()
+            article_form.save_m2m()
+
+            # Помечаем предложение как одобренное
+            proposal.status = 'approved'
+            proposal.reviewed_by = request.user
+            proposal.reviewed_at = timezone.now()
+            proposal.admin_notes = f'На основе этого предложения создана статья: {article.title}'
+            proposal.save()
+
+            messages.success(request, 'Статья успешно создана на основе предложения!')
+            return redirect('others:article-detail', pk=article.pk)
+    else:
+        # Предзаполняем форму данными из предложения
+        initial_data = {
+            'title': proposal.title,
+            'content': proposal.content,
+        }
+        article_form = ArticleForm(initial=initial_data)
+
+    context = {
+        'proposal': proposal,
+        'article_form': article_form,
+    }
+    return render(request, 'others/create_article_from_proposal.html', context)
+
+
 @login_required
 def recommendations_list(request):
     """Страница с рекомендациями для пользователя"""
-    # ... существующий код рекомендаций ...
     recommendations = Recommendation.objects.get_recommendations_for_user(request.user)
 
     if not recommendations:
@@ -92,82 +249,6 @@ def get_quick_recommendations(user, limit=3):
 def is_staff_user(user):
     return user.is_staff
 
-
-def _generate_site_statistics(self):
-    """Сгенерировать статистику сайта"""
-    from recipes.models import Favorite
-
-    # Топ-10 популярных рецептов (по количеству в избранном)
-    popular_recipes = Recipe.objects.annotate(
-        fav_count_annotated=Count('favorite', distinct=True)
-    ).filter(
-        fav_count_annotated__gt=0
-    ).order_by('-fav_count_annotated')[:10]
-
-    # Новинки (последние 10 рецептов)
-    new_recipes = Recipe.objects.all().order_by('-created_at')[:10]
-
-    # Топ-10 популярных хештегов (по количеству использований в рецептах)
-    popular_hashtags = Hashtag.objects.annotate(
-        usage_count=Count('recipe', distinct=True)
-    ).filter(
-        usage_count__gt=0
-    ).order_by('-usage_count')[:10]
-
-    # Топ-3 популярных автора - ИСПРАВЛЕННЫЙ ЗАПРОС
-    from django.db.models import Subquery, OuterRef
-
-    # Подзапрос для количества рецептов
-    recipe_count_subquery = Recipe.objects.filter(
-        author_id=OuterRef('id')
-    ).values('author_id').annotate(
-        count=Count('id', distinct=True)
-    ).values('count')[:1]
-
-    # Подзапрос для количества избранного - ИСПРАВЛЕННЫЙ
-    # Считаем только уникальные связи автор-избранное
-    favorite_count_subquery = Favorite.objects.filter(
-        recipe__author_id=OuterRef('id')
-    ).values('recipe__author_id').annotate(
-        count=Count('id', distinct=True)
-    ).values('count')[:1]
-
-    popular_authors = User.objects.annotate(
-        recipe_count=Subquery(recipe_count_subquery),
-        total_favorites=Subquery(favorite_count_subquery)
-    ).filter(
-        recipe_count__isnull=False
-    ).order_by('-total_favorites', '-recipe_count')[:3]
-
-    # Дополнительная статистика
-    total_recipes = Recipe.objects.count()
-    total_users = User.objects.count()
-    total_favorites = Favorite.objects.count()
-
-    # Статистика за последнюю неделю
-    week_ago = datetime.now() - timedelta(days=7)
-    new_recipes_week = Recipe.objects.filter(created_at__gte=week_ago).count()
-    new_users_week = User.objects.filter(date_joined__gte=week_ago).count()
-
-    # ОТЛАДКА: выведем реальные значения для проверки
-    print("=== DEBUG: REAL FAVORITE COUNTS ===")
-    for author in popular_authors:
-        real_favorite_count = Favorite.objects.filter(
-            recipe__author=author
-        ).count()
-        print(f"Author: {author.username}, Subquery count: {author.total_favorites}, Real count: {real_favorite_count}")
-
-    return {
-        'popular_recipes': list(popular_recipes),
-        'new_recipes': list(new_recipes),
-        'popular_hashtags': list(popular_hashtags),
-        'popular_authors': list(popular_authors),
-        'total_recipes': total_recipes,
-        'total_users': total_users,
-        'total_favorites': total_favorites,
-        'new_recipes_week': new_recipes_week,
-        'new_users_week': new_users_week,
-    }
 
 @user_passes_test(is_staff_user)
 def statistics_view(request):
