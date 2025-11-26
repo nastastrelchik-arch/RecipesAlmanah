@@ -5,6 +5,66 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
+<style>
+/* Добавьте эти стили для скрытия чекбоксов хештегов */
+.hashtags-checkboxes .form-check-input {
+    display: none !important;
+}
+
+.hashtags-checkboxes .form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.hashtags-checkboxes .form-check-label {
+    flex-grow: 1;
+    word-break: break-word;
+    line-height: 1.2;
+    margin-left: 0;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 0.25rem 0;
+    width: 100%;
+}
+
+/* Стили для выбранных хештегов */
+.hashtags-checkboxes .form-check-input:checked + .form-check-label {
+    color: #198754;
+    font-weight: 600;
+    background-color: rgba(25, 135, 84, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin: -0.25rem -0.5rem;
+}
+
+.hashtags-checkboxes .form-check:hover {
+    background-color: #f8f9fa;
+}
+
+/* Улучшенные стили для скроллбара */
+.hashtags-checkboxes::-webkit-scrollbar {
+    width: 8px;
+}
+
+.hashtags-checkboxes::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.hashtags-checkboxes::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.hashtags-checkboxes::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -216,11 +276,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Обновление счетчика выбранных хештегов
+    // Обновление счетчика выбранных хештегов и автоматическая отправка формы
     function updateHashtagsCounter() {
         const selectedCount = document.querySelectorAll('.hashtags-checkboxes .form-check-input:checked').length;
-        const dropdownButton = document.querySelector('#hashtagsDropdownSearch');
-        const counterElement = document.getElementById('selected-count-results');
+        const dropdownButton = document.querySelector('#hashtagsDropdown');
+        const counterElement = document.getElementById('selected-count');
 
         let badge = dropdownButton.querySelector('.badge');
         if (selectedCount > 0) {
@@ -237,16 +297,50 @@ document.addEventListener('DOMContentLoaded', function() {
         if (counterElement) {
             counterElement.textContent = selectedCount;
         }
-    }
 
-    // Инициализация счетчика при загрузке
-    updateHashtagsCounter();
+    }
 
     // Обработчики для чекбоксов
     const checkboxes = document.querySelectorAll('.hashtags-checkboxes .form-check-input');
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', updateHashtagsCounter);
     });
+
+    // Инициализация счетчика при загрузке
+    updateHashtagsCounter();
+
+    // Поиск хештегов в выпадающем списке
+    const hashtagSearchInput = document.getElementById('hashtagSearchInput');
+    const hashtagItems = document.querySelectorAll('.hashtag-item');
+
+    if (hashtagSearchInput) {
+        hashtagSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+
+            hashtagItems.forEach(item => {
+                const label = item.querySelector('.form-check-label');
+                const text = label.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Очистка поиска при закрытии dropdown
+        const dropdown = document.querySelector('.hashtags-dropdown');
+        if (dropdown) {
+            dropdown.addEventListener('hidden.bs.dropdown', function() {
+                setTimeout(() => {
+                    hashtagSearchInput.value = '';
+                    hashtagItems.forEach(item => {
+                        item.style.display = 'block';
+                    });
+                }, 300);
+            });
+        }
+    }
 
     // Предотвращение закрытия dropdown при клике внутри
     const dropdownMenu = document.querySelector('.dropdown-menu');
