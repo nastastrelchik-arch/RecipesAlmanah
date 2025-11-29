@@ -26,6 +26,5 @@ urlpatterns = [
 
     # Статистика
     path('statistics/', views.statistics_view, name='statistics'),
-    path('statistics/public/', views.public_statistics_view, name='public-statistics'),
     path('statistics/update/', views.update_statistics, name='update-statistics'),
 ]

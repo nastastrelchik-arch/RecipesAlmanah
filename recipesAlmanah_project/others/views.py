@@ -247,7 +247,7 @@ def is_staff_user(user):
     return user.is_staff
 
 
-@user_passes_test(is_staff_user)
+
 def statistics_view(request):
     """Страница статистики для администраторов"""
     try:
@@ -285,31 +285,7 @@ def statistics_view(request):
         return render(request, 'others/statistics.html', context)
 
 
-def public_statistics_view(request):
-    """Публичная страница статистики для всех пользователей"""
-    try:
-        statistics = Statistic.objects.get_site_statistics()
 
-        context = {
-            'statistics': statistics,
-        }
-        return render(request, 'others/public_statistics.html', context)
-    except Exception as e:
-        messages.error(request, f'Ошибка при загрузке статистики: {str(e)}')
-        context = {
-            'statistics': {
-                'popular_recipes': [],
-                'new_recipes': [],
-                'popular_hashtags': [],
-                'popular_authors': [],
-                'total_recipes': 0,
-                'total_users': 0,
-                'total_favorites': 0,
-                'new_recipes_week': 0,
-                'new_users_week': 0,
-            }
-        }
-        return render(request, 'others/public_statistics.html', context)
 
 
 def update_statistics(request):
