@@ -18,18 +18,41 @@
                     {% for field in form %}
                     <div class="mb-3">
                         <label for="{{ field.id_for_label }}" class="form-label">
-                            {{ field.label }}
+                            {% if field.name == 'username' %}Имя пользователя
+                            {% elif field.name == 'email' %}Email адрес
+                            {% elif field.name == 'password1' %}Пароль
+                            {% elif field.name == 'password2' %}Подтверждение пароля
+                            {% elif field.name == 'first_name' %}Имя
+                            {% elif field.name == 'last_name' %}Фамилия
+                            {% else %}{{ field.label }}{% endif %}
                             {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
                         </label>
                         {{ field }}
-                        
+
                         {% if field.help_text %}
-                        <div class="form-text">{{ field.help_text }}</div>
+                        <div class="form-text">
+                            {% if field.name == 'username' %}
+                                Обязательное поле. Не более 150 символов. Только буквы, цифры и символы @/./+/-/_.
+                            {% elif field.name == 'password1' %}
+                                <ul class="mb-0 ps-3">
+                                    <li>Пароль не должен быть слишком похож на другую вашу личную информацию.</li>
+                                    <li>Ваш пароль должен содержать как минимум 8 символов.</li>
+                                    <li>Пароль не должен быть слишком простым и распространенным.</li>
+                                    <li>Пароль не может состоять только из цифр.</li>
+                                </ul>
+                            {% elif field.name == 'password2' %}
+                                Для подтверждения введите, пожалуйста, пароль еще раз.
+                            {% else %}
+                                {{ field.help_text }}
+                            {% endif %}
+                        </div>
                         {% endif %}
-                        
+
                         {% if field.errors %}
                         <div class="alert alert-danger mt-1">
-                            {{ field.errors }}
+                            {% for error in field.errors %}
+                                <div class="mb-1">{{ error }}</div>
+                            {% endfor %}
                         </div>
                         {% endif %}
                     </div>

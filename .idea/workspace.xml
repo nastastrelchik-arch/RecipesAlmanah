@@ -5,12 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="48c9dd52-a46f-481a-a069-f64cb8abc318" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/RecipesAlmanah.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/RecipesAlmanah.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/others/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/others/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/others/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/others/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/templates/others/statistics.html" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/templates/others/statistics.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/recipes/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/recipes/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/recipes/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/recipes/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/templates/recipes/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/templates/recipes/home.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/templates/users/register.html" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/templates/users/register.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/users/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recipesAlmanah_project/users/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/recipesAlmanah_project/users/tests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,8 +27,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -52,16 +56,17 @@
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.pycharm.django.structure.promotion.once.per.project&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;django.template.preview.state&quot;: &quot;SHOW_EDITOR_AND_PREVIEW&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/University/kursach/RecipesAlmanah/RecipesAlmanah&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/University/5semestr/Kursach/RecipesAlmanah&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -86,6 +91,7 @@
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="RUN_TOOL" value="" />
       <option name="launchJavascriptDebuger" value="false" />
       <option name="port" value="8000" />
       <option name="host" value="" />
@@ -125,8 +131,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-b598e85cdad2-JavaScript-PY-252.25557.178" />
-        <option value="bundled-python-sdk-ce6832f46686-7b97d883f26b-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.25557.178" />
+        <option value="bundled-js-predefined-d6986cc7102b-c7e53b3be11b-JavaScript-PY-253.28294.336" />
+        <option value="bundled-python-sdk-0978a7220b69-9867c7d4c0a4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.28294.336" />
       </set>
     </attachedChunks>
   </component>
@@ -162,6 +168,8 @@
       <workItem from="1764174908530" duration="11504000" />
       <workItem from="1764233442697" duration="4344000" />
       <workItem from="1764338212684" duration="39000" />
+      <workItem from="1765800303945" duration="40000" />
+      <workItem from="1766042354979" duration="3443000" />
     </task>
     <servers />
   </component>

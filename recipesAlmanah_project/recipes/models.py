@@ -36,7 +36,7 @@ class Recipe(models.Model):
         return self.title
 #Возврат канонического URL для избегания жёсткого кодирования путей
     def get_absolute_url(self):
-        return reverse('recipe-detail', kwargs={'pk': self.pk})
+        return reverse('recipes:recipe-detail', kwargs={'pk': self.pk})
 
     @property
     def favorite_count(self):
